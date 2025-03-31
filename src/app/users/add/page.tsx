@@ -1,37 +1,43 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { AppHeader } from "@/components/layout/app-header"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Eye, EyeOff } from "lucide-react"
-import Link from "next/link"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState } from 'react';
+import { AppHeader } from '@/components/layout/app-header';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Eye, EyeOff } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function AddUserPage() {
-  const [nom, setNom] = useState("")
-  const [prenom, setPrenom] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [telephone, setTelephone] = useState("")
-  const [role, setRole] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [nom, setNom] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [telephone, setTelephone] = useState('');
+  const [role, setRole] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Validation simple
     if (password !== confirmPassword) {
-      alert("Les mots de passe ne correspondent pas")
-      return
+      alert('Les mots de passe ne correspondent pas');
+      return;
     }
 
     // Au lieu d'utiliser useRouter, utilisons window.location
-    window.location.href = "/users"
-  }
+    window.location.href = '/users';
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -51,7 +57,12 @@ export default function AddUserPage() {
               <label htmlFor="prenom" className="block text-sm font-medium">
                 Prénom
               </label>
-              <Input id="prenom" value={prenom} onChange={(e) => setPrenom(e.target.value)} required />
+              <Input
+                id="prenom"
+                value={prenom}
+                onChange={(e) => setPrenom(e.target.value)}
+                required
+              />
             </div>
 
             <div>
@@ -75,7 +86,7 @@ export default function AddUserPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -103,7 +114,7 @@ export default function AddUserPage() {
               <div className="relative">
                 <Input
                   id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••••"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -174,6 +185,5 @@ export default function AddUserPage() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-

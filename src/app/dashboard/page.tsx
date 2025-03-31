@@ -1,11 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { formatCurrency } from "@/lib/utils/format"
+'use client';
+
+import { useProfile } from '@/lib/api/hooks/use-profile';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/utils/format';
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
 
 export default function DashboardPage() {
-  return (
-    <div className="container py-10">
-      <h1 className="text-3xl font-bold mb-6">Tableau de bord</h1>
+  const { profile } = useProfile();
 
+  return (
+    <AuthenticatedLayout title="Tableau de bord" userName={profile?.firstName || ''}>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
@@ -48,7 +52,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
-  )
+    </AuthenticatedLayout>
+  );
 }
-

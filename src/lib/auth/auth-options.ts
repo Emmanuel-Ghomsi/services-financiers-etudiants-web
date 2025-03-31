@@ -1,67 +1,207 @@
-import type { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
+import type { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import type { JWT } from 'next-auth/jwt';
+
+// Types pour les tokens
+interface TokenData {
+  accessToken: string;
+  refreshToken: string;
+  accessTokenExpires: Date;
+  refreshTokenExpires: Date;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    roles: string[];
+  };
+}
+
+// Function to decode JWT token
+function decodeJWT(token: string) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Error decoding JWT:', error);
+    return null;
+  }
+}
+
+// Fonction pour rafraîchir le token d'accès
+async function refreshAccessToken(
+  token: JWT & Partial<TokenData>
+): Promise<JWT & Partial<TokenData>> {
+  try {
+    // Vérifier si le refresh token est expiré
+    if (token.refreshTokenExpires && new Date(token.refreshTokenExpires) < new Date()) {
+      return {
+        ...token,
+        error: 'RefreshTokenExpired',
+      };
+    }
+
+    // Appel à l'API pour rafraîchir le token
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_PATH_URL}/auth/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refresh_token: token.refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Échec du rafraîchissement du token');
+    }
+
+    const refreshedTokens = await response.json();
+
+    // Décoder le nouveau token pour extraire les informations utilisateur
+    const decodedToken = decodeJWT(refreshedTokens.access_token);
+
+    if (!decodedToken) {
+      throw new Error('Token rafraîchi invalide');
+    }
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.access_token,
+      accessTokenExpires: new Date(refreshedTokens.expire_date),
+      refreshToken: refreshedTokens.refresh_token,
+      refreshTokenExpires: new Date(refreshedTokens.refresh_expire_date),
+      user: {
+        id: decodedToken.id,
+        email: decodedToken.email,
+        username: decodedToken.username,
+        roles: decodedToken.roles,
+      },
+    };
+  } catch (error) {
+    console.error('Erreur lors du rafraîchissement du token:', error);
+
+    return {
+      ...token,
+      error: 'RefreshAccessTokenError',
+    };
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Mot de passe", type: "password" },
+        username: { label: "Nom d'utilisateur ou Email", type: 'text' },
+        password: { label: 'Mot de passe', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null
+        if (!credentials?.username || !credentials?.password) {
+          return null;
         }
 
         try {
-          // Pour le développement, nous allons simuler une authentification réussie
-          // Dans un environnement de production, vous devriez appeler votre API
-          if (credentials.email === "admin@example.com" && credentials.password === "password") {
-            return {
-              id: "1",
-              email: credentials.email,
-              name: "Admin User",
-              role: "admin",
-            }
+          // Appel à l'API pour authentifier l'utilisateur
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_PATH_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              username: credentials.username,
+              password: credentials.password,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error("Échec de l'authentification");
           }
 
-          return null
+          const data = await response.json();
+
+          // Décoder le token pour extraire les informations utilisateur
+          const decodedToken = decodeJWT(data.access_token);
+
+          if (!decodedToken) {
+            throw new Error('Token invalide');
+          }
+
+          // Retourner les données de l'utilisateur et les tokens
+          return {
+            id: decodedToken.id,
+            email: decodedToken.email,
+            username: decodedToken.username,
+            roles: decodedToken.roles,
+            accessToken: data.access_token,
+            refreshToken: data.refresh_token,
+            accessTokenExpires: new Date(data.expire_date),
+            refreshTokenExpires: new Date(data.refresh_expire_date),
+          };
         } catch (error) {
-          console.error("Erreur d'authentification:", error)
-          return null
+          console.error("Erreur d'authentification:", error);
+          return null;
         }
       },
     }),
   ],
   session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 jours
+    strategy: 'jwt',
+    maxAge: 7 * 24 * 60 * 60, // 7 jours (correspondant à la durée de vie du refresh token)
   },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
-        token.email = user.email
-        token.name = user.name
-        token.role = user.role
+    async jwt({ token, user, account }) {
+      // Première connexion
+      if (user && account) {
+        return {
+          ...token,
+          accessToken: user.accessToken,
+          refreshToken: user.refreshToken,
+          accessTokenExpires: user.accessTokenExpires,
+          refreshTokenExpires: user.refreshTokenExpires,
+          user: {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            roles: user.roles,
+          },
+        };
       }
-      return token
+
+      // Vérifier si le token d'accès est toujours valide
+      if (token.accessTokenExpires && new Date(token.accessTokenExpires) > new Date()) {
+        return token;
+      }
+
+      // Le token a expiré, essayer de le rafraîchir
+      return refreshAccessToken(token);
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string
-        session.user.email = token.email as string
-        session.user.name = token.name as string
-        session.user.role = token.role as string
+      // Ajouter les informations du token à la session
+      if (token.user) {
+        session.user = token.user as any;
       }
-      return session
+
+      session.accessToken = token.accessToken as string;
+      session.error = token.error as string | undefined;
+
+      // Ajouter des informations supplémentaires à la session si nécessaire
+      session.expires = token.accessTokenExpires as unknown as string;
+
+      return session;
     },
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: '/auth/login',
+    error: '/auth/error',
   },
-  secret: process.env.NEXTAUTH_SECRET || "your-secret-key-for-development",
-}
-
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  debug: process.env.NODE_ENV === 'development',
+  secret: process.env.NEXTAUTH_SECRET,
+};

@@ -1,37 +1,39 @@
-"use client"
+'use client';
 
-import type React from "react"
-import { useState } from "react"
-import { Logo } from "@/components/layout/logo"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
-import Link from "next/link"
-import { useAuth } from "@/hooks/use-auth"
-import { useToast } from "@/hooks/use-toast"
+import type React from 'react';
+import { useState } from 'react';
+import { Logo } from '@/components/layout/logo';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const { login, isLoading } = useAuth()
-  const { toast } = useToast()
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, isLoading } = useAuth();
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!email || !password) {
-      toast("Veuillez remplir tous les champs", "warning")
-      return
+    if (!username || !password) {
+      toast('Veuillez remplir tous les champs', 'warning');
+      return;
     }
 
-    const success = await login(email, password)
+    const success = await login(username, password);
     if (success) {
-      window.location.href = "/connected"
+      router.push('/clients');
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -45,13 +47,13 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Nom d'utilisateur ou Adresse Mail</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="hello@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                type="username"
+                placeholder="john.doe ou john@example.com"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 disabled={isLoading}
               />
@@ -61,7 +63,7 @@ export default function LoginPage() {
               <div className="relative">
                 <Input
                   id="password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -83,18 +85,21 @@ export default function LoginPage() {
                 </button>
               </div>
               <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-sm text-brand-blue hover:underline">
+                <Link href="/auth/forgot-password" className="text-sm text-brand-blue hover:underline">
                   Mot de passe oublié ?
                 </Link>
               </div>
             </div>
-            <Button type="submit" className="w-full bg-brand-blue hover:bg-brand-blue/90" disabled={isLoading}>
-              {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : "Connexion"}
+            <Button
+              type="submit"
+              className="w-full bg-brand-blue hover:bg-brand-blue/90"
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : 'Connexion'}
             </Button>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
-
