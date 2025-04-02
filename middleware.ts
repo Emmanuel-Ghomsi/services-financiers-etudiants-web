@@ -8,6 +8,9 @@ const protectedRoutes = ['/dashboard', '/clients', '/users', '/connected', '/ver
 // Liste des routes accessibles uniquement aux utilisateurs non authentifiés
 const authRoutes = ['/login', '/register', '/create-account', '/forgot-password'];
 
+// Liste des routes qui nécessitent des rôles spécifiques
+const adminRoutes = ['/users'];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -18,6 +21,15 @@ export async function middleware(request: NextRequest) {
   });
 
   const isAuthenticated = !!token;
+  const userRoles = token?.user?.roles || [];
+  const isAdmin = userRoles.some(
+    (role) =>
+      typeof role === 'string' &&
+      (role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN')
+  );
+
+  console.log('Middleware - Rôles:', userRoles);
+  console.log('Middleware - Est admin:', isAdmin);
 
   // Rediriger les utilisateurs non authentifiés vers la page de connexion
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
@@ -25,6 +37,20 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(redirectUrl);
+  }
+
+  // Vérifier les permissions pour les routes admin
+  const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
+  if (isAdminRoute && isAuthenticated) {
+    if (!userRoles || userRoles.length === 0) {
+      console.log('Middleware - Aucun rôle trouvé');
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    if (!isAdmin) {
+      console.log('Middleware - Accès refusé: rôles insuffisants');
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
   }
 
   // Rediriger les utilisateurs authentifiés vers le tableau de bord s'ils tentent d'accéder aux pages d'authentification

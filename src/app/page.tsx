@@ -10,7 +10,7 @@ export default function Home() {
         <h1 className="text-4xl font-bold mt-10 mb-6 text-brand-blue">
           Services Financiers Étudiants
         </h1>
-        <p className="text-xl mb-8 text-gray-600">Application de gestion des clients KYC</p>
+        <p className="text-xl mb-8 text-gray-600">Application de gestion interne</p>
         <Button className="bg-brand-blue hover:bg-brand-blue/90" asChild>
           <Link href="/auth/login">Connexion</Link>
         </Button>

@@ -1,5 +1,5 @@
 {
-  "name": "kyc-services-financier-etudiants",
+  "name": "services-financier-etudiants-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -60,6 +60,7 @@
     "react-dom": "^19",
     "react-hook-form": "latest",
     "react-resizable-panels": "^2.1.7",
+    "react-select": "^5.10.1",
     "recharts": "2.15.0",
     "sonner": "latest",
     "tailwind-merge": "^2.5.5",

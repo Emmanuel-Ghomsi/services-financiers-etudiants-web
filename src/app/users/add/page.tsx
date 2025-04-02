@@ -1,189 +1,194 @@
 'use client';
 
-import type React from 'react';
-
 import { useState } from 'react';
-import { AppHeader } from '@/components/layout/app-header';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
+import { useProfile } from '@/lib/api/hooks/use-profile';
+import { useUsers } from '@/lib/api/hooks/use-users';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Eye, EyeOff } from 'lucide-react';
-import Link from 'next/link';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import Link from 'next/link';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
+import { LoadingButton } from '@/components/ui/loading-button';
+
+// Définir l'enum des rôles
+const RoleEnum = {
+  SUPER_ADMIN: 'SUPER_ADMIN',
+  ADMIN: 'ADMIN',
+  SUB_ADMIN: 'SUB_ADMIN',
+  ADVISOR: 'ADVISOR',
+} as const;
+
+type RoleType = keyof typeof RoleEnum;
+
+// Schéma de validation pour le formulaire
+const formSchema = z.object({
+  username: z.string().min(3, "Le nom d'utilisateur doit contenir au moins 3 caractères"),
+  email: z.string().email('Email invalide'),
+  roles: z.array(z.string()).min(1, 'Au moins un rôle doit être attribué'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function AddUserPage() {
-  const [nom, setNom] = useState('');
-  const [prenom, setPrenom] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [telephone, setTelephone] = useState('');
-  const [role, setRole] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { profile } = useProfile();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { registerUser } = useUsers({ page: 1, pageSize: 10 });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Validation simple
-    if (password !== confirmPassword) {
-      alert('Les mots de passe ne correspondent pas');
-      return;
+  // Options de rôles disponibles
+  const roleOptions: MultiSelectOption[] = [
+    { value: RoleEnum.SUPER_ADMIN, label: 'Super Administrateur' },
+    { value: RoleEnum.ADMIN, label: 'Administrateur' },
+    { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
+    { value: RoleEnum.ADVISOR, label: 'Conseiller' },
+  ];
+
+  // Initialiser le formulaire
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: '',
+      email: '',
+      roles: ['ADVISOR'],
+    },
+  });
+
+  // Gérer la soumission du formulaire
+  const onSubmit = async (values: FormValues) => {
+    setIsSubmitting(true);
+    try {
+      const result = await registerUser({
+        username: values.username,
+        email: values.email,
+        roles: values.roles,
+      });
+
+      if (result) {
+        router.push('/users');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Au lieu d'utiliser useRouter, utilisons window.location
-    window.location.href = '/users';
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <AppHeader title="Utilisateurs" />
-      <main className="flex-1 p-6">
-        <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
-          <h2 className="text-2xl font-bold mb-6">Ajouter / modifier utilisateur</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="nom" className="block text-sm font-medium">
-                Nom
-              </label>
-              <Input id="nom" value={nom} onChange={(e) => setNom(e.target.value)} required />
-            </div>
+    <AuthenticatedLayout title="Ajouter un utilisateur" userName={profile?.firstName || ''}>
+      <Breadcrumb
+        segments={[
+          { name: 'Utilisateurs', href: '/users' },
+          { name: 'Ajouter un utilisateur', href: '/users/add' },
+        ]}
+      />
 
-            <div>
-              <label htmlFor="prenom" className="block text-sm font-medium">
-                Prénom
-              </label>
-              <Input
-                id="prenom"
-                value={prenom}
-                onChange={(e) => setPrenom(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="hello@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pr-10"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+      <div className="max-w-2xl mx-auto">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ajouter un utilisateur</CardTitle>
+            <CardDescription>
+              Créez un nouvel utilisateur. Un email sera envoyé à l'adresse indiquée pour définir le
+              mot de passe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom d'utilisateur</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john.doe" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Le nom d'utilisateur doit être unique et contenir au moins 3 caractères.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium">
-                Confirmation du Mot de passe
-              </label>
-              <div className="relative">
-                <Input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="••••••••••"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="pr-10"
                 />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="john.doe@example.com" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Un email sera envoyé à cette adresse pour définir le mot de passe.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-              </div>
-            </div>
+                />
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="telephone" className="block text-sm font-medium">
-                  Contact
-                </label>
-                <div className="flex">
-                  <div className="flex items-center border rounded-l-md px-3 bg-white">
-                    <span className="mr-1">🇺🇸</span>
-                    <span>+1</span>
-                  </div>
-                  <Input
-                    id="telephone"
-                    type="tel"
-                    placeholder="numéro de téléphone"
-                    value={telephone}
-                    onChange={(e) => setTelephone(e.target.value)}
-                    className="rounded-l-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="role" className="block text-sm font-medium">
-                  Role
-                </label>
-                <Select value={role} onValueChange={setRole}>
-                  <SelectTrigger id="role">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Administrateur</SelectItem>
-                    <SelectItem value="user">Utilisateur</SelectItem>
-                    <SelectItem value="manager">Manager</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex justify-between mt-6">
-              <Button type="button" variant="outline" asChild>
-                <Link href="/users">Annuler</Link>
-              </Button>
-              <Button type="submit" className="bg-brand-blue hover:bg-brand-blue/90">
-                Ajouter
-              </Button>
-            </div>
-          </form>
-        </div>
-      </main>
-    </div>
+                <FormField
+                  control={form.control}
+                  name="roles"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rôles</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={roleOptions}
+                          value={roleOptions.filter((option) => field.value.includes(option.value))}
+                          onChange={(newValue) => {
+                            field.onChange(newValue.map((item) => item.value));
+                          }}
+                          placeholder="Sélectionnez les rôles..."
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Sélectionnez au moins un rôle pour l'utilisateur.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" asChild>
+              <Link href="/users">Annuler</Link>
+            </Button>
+            <LoadingButton
+              onClick={form.handleSubmit(onSubmit)}
+              isLoading={isSubmitting}
+              loadingText="Création en cours..."
+              className="bg-brand-blue hover:bg-brand-blue/90"
+            >
+              Créer l'utilisateur
+            </LoadingButton>
+          </CardFooter>
+        </Card>
+      </div>
+    </AuthenticatedLayout>
   );
 }

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/use-auth';
 import { Logo } from './logo';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useProfileStore } from '@/lib/stores/profile-store';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -19,6 +20,10 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
   const isMobile = useMediaQuery('(max-width: 768px)');
+  const { profile } = useProfileStore();
+
+  // Vérifier si l'utilisateur est admin
+  const isAdmin = profile?.roles?.some((role) => role === 'ADMIN' || role === 'SUPER_ADMIN');
 
   // Fermer automatiquement la sidebar sur mobile
   useEffect(() => {
@@ -34,26 +39,31 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
     }
   }, [pathname, isMobile, setCollapsed]);
 
+  // Liste des éléments de navigation
   const navItems = [
     {
       title: 'Tableau de bord',
       href: '/dashboard',
       icon: <LayoutDashboard className="h-5 w-5" />,
+      show: true, // Toujours visible
     },
     {
       title: 'Clients',
       href: '/clients',
       icon: <FileText className="h-5 w-5" />,
+      show: true, // Toujours visible
     },
     {
       title: 'Utilisateurs',
       href: '/users',
       icon: <Users className="h-5 w-5" />,
+      show: isAdmin, // Visible uniquement pour les admins
     },
     {
       title: 'Paramètres',
       href: '/settings',
       icon: <Settings className="h-5 w-5" />,
+      show: true, // Toujours visible
     },
   ];
 
@@ -90,23 +100,25 @@ export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
 
           <nav className="flex-1 overflow-y-auto py-4">
             <ul className="space-y-1 px-2">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                      pathname === item.href
-                        ? 'bg-brand-blue text-white'
-                        : 'text-gray-700 hover:bg-gray-100',
-                      collapsed ? 'justify-center md:px-3' : ''
-                    )}
-                  >
-                    {item.icon}
-                    {!collapsed && <span>{item.title}</span>}
-                  </Link>
-                </li>
-              ))}
+              {navItems
+                .filter((item) => item.show)
+                .map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                        pathname === item.href
+                          ? 'bg-brand-blue text-white'
+                          : 'text-gray-700 hover:bg-gray-100',
+                        collapsed ? 'justify-center md:px-3' : ''
+                      )}
+                    >
+                      {item.icon}
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  </li>
+                ))}
             </ul>
           </nav>
 

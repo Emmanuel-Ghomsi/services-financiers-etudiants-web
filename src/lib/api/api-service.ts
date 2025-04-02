@@ -1,7 +1,13 @@
 import type { ClientFileListRequest, ClientFilePaginationDTO } from '@/types/client-file';
 import type { UserProfile } from '@/types/user-profile';
+import type {
+  UserListRequest,
+  UserPaginationDTO,
+  RegisterUserRequest,
+  SetPasswordRequest,
+} from '@/types/user';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_PATH_URL;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/v1';
 
 // Fonction utilitaire pour les requêtes API
 async function fetchApi<T>(
@@ -83,5 +89,42 @@ export const clientFileService = {
       { method: 'GET' },
       token
     );
+  },
+};
+
+// Service pour les utilisateurs
+export const userService = {
+  getAllUsers: async (token: string, params: UserListRequest): Promise<UserPaginationDTO> => {
+    const queryParams = new URLSearchParams();
+    queryParams.append('page', params.page.toString());
+    queryParams.append('pageSize', params.pageSize.toString());
+
+    if (params.filters) {
+      Object.entries(params.filters).forEach(([key, value]) => {
+        if (value) {
+          queryParams.append(`filters[${key}]`, value);
+        }
+      });
+    }
+
+    return fetchApi<UserPaginationDTO>(`/user?${queryParams.toString()}`, { method: 'GET' }, token);
+  },
+
+  registerUser: async (token: string, userData: RegisterUserRequest): Promise<UserProfile> => {
+    return fetchApi<UserProfile>(
+      '/auth/register',
+      {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      },
+      token
+    );
+  },
+
+  setPassword: async (data: SetPasswordRequest): Promise<{ message: string }> => {
+    return fetchApi<{ message: string }>('/auth/set-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   },
 };

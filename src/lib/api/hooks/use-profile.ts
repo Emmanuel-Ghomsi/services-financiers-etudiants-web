@@ -29,6 +29,8 @@ export function useProfile() {
   // Mettre à jour le store lorsque les données sont disponibles
   React.useEffect(() => {
     if (data) {
+      console.log('Profil chargé:', data);
+      console.log('Rôles du profil:', data.roles);
       setProfile(data);
     }
   }, [data, setProfile]);
@@ -37,6 +39,7 @@ export function useProfile() {
   React.useEffect(() => {
     if (error) {
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+      console.error('Erreur lors du chargement du profil:', errorMessage);
       setError(errorMessage);
       toast(errorMessage, 'error');
     }

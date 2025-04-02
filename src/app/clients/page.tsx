@@ -9,6 +9,9 @@ import { ClientFilesInfinite } from '@/components/client/client-files-infinite';
 import { useProfile } from '@/lib/api/hooks/use-profile';
 import { useSession } from 'next-auth/react';
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { Loader2, PlusIcon } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ClientsListPage() {
   const { data: session, status } = useSession();
@@ -26,7 +29,7 @@ export default function ClientsListPage() {
   if (status === 'loading' || profileLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-brand-blue"></div>
+        <Loader2 className="h-16 w-16 animate-spin text-brand-blue" />
         <p className="mt-4 text-gray-600">Chargement...</p>
       </div>
     );
@@ -34,6 +37,8 @@ export default function ClientsListPage() {
 
   return (
     <AuthenticatedLayout title="Clients" userName={profile?.firstName || ''}>
+      <Breadcrumb segments={[{ name: 'Clients', href: '/clients' }]} />
+
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4 border-b">
           <Button variant="default" className="bg-brand-blue hover:bg-brand-blue/90" asChild>
@@ -43,13 +48,11 @@ export default function ClientsListPage() {
       </div>
 
       <div className="mb-6">
-        <Button
-          variant="outline"
-          className="flex items-center space-x-2"
-          onClick={() => router.push('/clients/new')}
-        >
-          <span className="text-lg">+</span>
-          <span>Ajouter un client</span>
+        <Button variant="outline" className="flex items-center gap-2" asChild>
+          <Link href="/clients/new">
+            <PlusIcon className="h-4 w-4" />
+            <span>Ajouter un client</span>
+          </Link>
         </Button>
       </div>
 

@@ -1,18 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
-  CalendarIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  FileIcon,
-  MessageSquareIcon,
-  PencilIcon,
+  Loader2,
+  PlusIcon,
   SearchIcon,
-  TrashIcon,
+  MoreHorizontal,
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -24,40 +21,184 @@ import {
 } from '@/components/ui/select';
 import { useProfile } from '@/lib/api/hooks/use-profile';
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
+import { useUsers } from '@/lib/api/hooks/use-users';
+import { formatDate } from '@/lib/utils/format';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from '@/components/ui/pagination';
+import { useRouter } from 'next/navigation';
+import { UserStatusBadge } from '@/components/user/user-status-badge';
+import { UserRoleBadge } from '@/components/user/user-role-badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { EditUserModal } from '@/components/user/edit-user-modal';
+import { EditRolesModal } from '@/components/user/edit-roles-modal';
+import { EditStatusModal } from '@/components/user/edit-status-modal';
+import { ResendPasswordModal } from '@/components/user/resend-password-modal';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import type { UserDTO } from '@/types/user';
 
 export default function UsersPage() {
-  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-  const { profile } = useProfile();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { profile, isLoading: isProfileLoading } = useProfile();
+  const router = useRouter();
 
-  const users = [
-    { id: '1', nom: 'Darlene Robertson', email: 'darlene@example.com', role: 'Utilisateur' },
-    { id: '2', nom: 'Guy Hawkins', email: 'guy@example.com', role: 'Utilisateur' },
-    { id: '3', nom: 'Esther Howard', email: 'esther@example.com', role: 'Utilisateur' },
-    { id: '4', nom: 'Wade Warren', email: 'wade@example.com', role: 'ADMIN' },
-    { id: '5', nom: 'Devon Lane', email: 'devon@example.com', role: 'ADMIN' },
-    { id: '6', nom: 'Kathryn Murphy', email: 'kathryn@example.com', role: 'ADMIN' },
-    { id: '7', nom: 'Cameron Williamson', email: 'cameron@example.com', role: 'ADMIN' },
-    { id: '8', nom: 'Floyd Miles', email: 'floyd@example.com', role: 'Utilisateur' },
-    { id: '9', nom: 'Ronald Richards', email: 'ronald@example.com', role: 'Utilisateur' },
-    { id: '10', nom: 'Annette Black', email: 'annette@example.com', role: 'Utilisateur' },
-    { id: '11', nom: 'Dianne Russell', email: 'dianne@example.com', role: 'Utilisateur' },
-    { id: '12', nom: 'Theresa Webb', email: 'theresa@example.com', role: 'Utilisateur' },
-  ];
+  // Modales
+  const [selectedUser, setSelectedUser] = useState<UserDTO | null>(null);
+  const [editUserOpen, setEditUserOpen] = useState(false);
+  const [editRolesOpen, setEditRolesOpen] = useState(false);
+  const [editStatusOpen, setEditStatusOpen] = useState(false);
+  const [resendPasswordOpen, setResendPasswordOpen] = useState(false);
 
-  const toggleSelectUser = (userId: string) => {
-    if (selectedUsers.includes(userId)) {
-      setSelectedUsers(selectedUsers.filter((id) => id !== userId));
-    } else {
-      setSelectedUsers([...selectedUsers, userId]);
+  useEffect(() => {
+    if (profile) {
+      // Vérification des rôles insensible à la casse
+      const hasAdminRole = profile.roles?.some(
+        (role) => role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN'
+      );
+
+      setIsAdmin(hasAdminRole);
+
+      // Ne rediriger que si nous sommes sûrs que l'utilisateur n'est pas admin
+      if (profile.roles && !hasAdminRole) {
+        router.push('/dashboard');
+      }
+    }
+  }, [profile, router]);
+
+  // Récupérer les utilisateurs
+  const { data, isLoading, error, refetch } = useUsers({
+    page: currentPage,
+    pageSize,
+    filters: searchTerm
+      ? {
+          username: searchTerm,
+          email: searchTerm,
+        }
+      : undefined,
+  });
+
+  const handleSearch = () => {
+    setCurrentPage(1);
+    refetch();
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: string) => {
+    setPageSize(Number(size));
+    setCurrentPage(1);
+  };
+
+  const handleActionClick = (user: UserDTO, action: string) => {
+    setSelectedUser(user);
+
+    switch (action) {
+      case 'edit':
+        setEditUserOpen(true);
+        break;
+      case 'roles':
+        setEditRolesOpen(true);
+        break;
+      case 'status':
+        setEditStatusOpen(true);
+        break;
+      case 'resend':
+        setResendPasswordOpen(true);
+        break;
     }
   };
 
-  const getRoleColor = (role: string) => {
-    return role === 'ADMIN' ? 'text-green-600 font-medium' : 'text-blue-600';
+  const handleSuccess = () => {
+    refetch();
   };
+
+  const renderPagination = () => {
+    // Vérifier si data existe et contient les propriétés nécessaires
+    if (!data || typeof data.totalPages !== 'number' || typeof data.currentPage !== 'number') {
+      return null;
+    }
+
+    const { totalPages, currentPage } = data;
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <div className="p-4 flex items-center justify-center border-t">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+                <span className="sr-only">Précédent</span>
+              </Button>
+            </PaginationItem>
+
+            {pages.map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => handlePageChange(page)}
+                  isActive={page === currentPage}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+
+            <PaginationItem>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRightIcon className="h-4 w-4" />
+                <span className="sr-only">Suivant</span>
+              </Button>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
+    );
+  };
+
+  if (!isProfileLoading && profile && !isAdmin) {
+    return null;
+  }
 
   return (
     <AuthenticatedLayout title="Utilisateurs" userName={profile?.firstName || ''}>
+      <Breadcrumb segments={[{ name: 'Utilisateurs', href: '/users' }]} />
+
       <div className="bg-white rounded-lg shadow mb-6">
         <div className="p-4 border-b">
           <Button variant="default" className="bg-brand-blue hover:bg-brand-blue/90 mr-4">
@@ -69,34 +210,40 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <div className="mb-6 flex space-x-4">
-        <Button variant="outline" className="flex items-center space-x-2" asChild>
-          <Link href="/clients/new">
-            <span className="text-lg">+</span>
-            <span>Ajouter un client</span>
-          </Link>
-        </Button>
-
-        <Button variant="outline" className="flex items-center space-x-2" asChild>
+      <div className="mb-6">
+        <Button variant="outline" className="flex items-center gap-2" asChild>
           <Link href="/users/add">
-            <span className="text-lg">+</span>
+            <PlusIcon className="h-4 w-4" />
             <span>Ajouter un utilisateur</span>
           </Link>
         </Button>
       </div>
 
       <div className="bg-white rounded-lg shadow">
-        <div className="p-4 flex justify-between items-center border-b">
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Input placeholder="Rechercher un utilisateur" className="pl-10 w-80" />
+        <div className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center border-b gap-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-80">
+              <Input
+                placeholder="Rechercher un utilisateur"
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
               <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                 <SearchIcon className="h-4 w-4 text-gray-400" />
               </div>
+              <Button
+                onClick={handleSearch}
+                className="absolute inset-y-0 right-0 bg-brand-blue hover:bg-brand-blue/90"
+                size="sm"
+              >
+                Rechercher
+              </Button>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">afficher</span>
-              <Select defaultValue="10">
+              <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
                 <SelectTrigger className="w-16">
                   <SelectValue placeholder="10" />
                 </SelectTrigger>
@@ -111,116 +258,125 @@ export default function UsersPage() {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <div className="relative">
-              <Input placeholder="Date" className="w-40 pr-10" />
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <CalendarIcon className="h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-            <Button variant="outline" className="text-sm">
-              Filtre
+          <div className="flex items-center gap-2 self-end md:self-auto">
+            <Button variant="outline" className="text-sm" onClick={() => refetch()}>
+              Actualiser
             </Button>
             <Button className="bg-brand-blue hover:bg-brand-blue/90 text-sm">Exporter</Button>
-            <Button variant="destructive" className="text-sm">
-              Supprimer
-            </Button>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 text-left">
-              <tr>
-                <th className="p-4 whitespace-nowrap">Nom & prénom</th>
-                <th className="p-4 whitespace-nowrap">Email</th>
-                <th className="p-4 whitespace-nowrap">Informations détaillées</th>
-                <th className="p-4 whitespace-nowrap">Sélectionner</th>
-                <th className="p-4 whitespace-nowrap">Éditer</th>
-                <th className="p-4 whitespace-nowrap">Message</th>
-                <th className="p-4 whitespace-nowrap">Roles</th>
-                <th className="p-4 whitespace-nowrap">Supprimer</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="p-4 whitespace-nowrap">{user.nom}</td>
-                  <td className="p-4 whitespace-nowrap">{user.email}</td>
-                  <td className="p-4 whitespace-nowrap">
-                    <Button variant="link" className="text-brand-blue p-0 h-auto">
-                      Voir fichier
-                    </Button>
-                    <FileIcon className="inline-block ml-1 h-4 w-4 text-gray-400" />
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <Checkbox />
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <PencilIcon className="h-4 w-4" />
-                    </Button>
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MessageSquareIcon className="h-4 w-4" />
-                    </Button>
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <span className={getRoleColor(user.role)}>{user.role}</span>
-                    <ChevronRightIcon className="inline-block ml-1 h-4 w-4 text-gray-400" />
-                  </td>
-                  <td className="p-4 whitespace-nowrap">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500">
-                      <TrashIcon className="h-4 w-4" />
-                    </Button>
-                  </td>
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-12 w-12 animate-spin text-brand-blue" />
+          </div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-8">
+            Une erreur est survenue lors du chargement des utilisateurs.
+            <Button variant="link" onClick={() => refetch()} className="ml-2">
+              Réessayer
+            </Button>
+          </div>
+        ) : !data || !Array.isArray(data.items) || data.items.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">Aucun utilisateur trouvé.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="p-4 whitespace-nowrap">Nom & prénom</th>
+                  <th className="p-4 whitespace-nowrap">Email</th>
+                  <th className="p-4 whitespace-nowrap">Nom d'utilisateur</th>
+                  <th className="p-4 whitespace-nowrap">Date de création</th>
+                  <th className="p-4 whitespace-nowrap">Statut</th>
+                  <th className="p-4 whitespace-nowrap">Roles</th>
+                  <th className="p-4 whitespace-nowrap text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="p-4 flex items-center justify-center border-t">
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <ChevronLeftIcon className="h-4 w-4" />
-              <span className="sr-only">Précédent</span>
-            </Button>
-            <Button variant="outline" size="sm">
-              04
-            </Button>
-            <Button variant="outline" size="sm">
-              05
-            </Button>
-            <Button variant="default" size="sm" className="bg-brand-blue hover:bg-brand-blue/90">
-              06
-            </Button>
-            <Button variant="outline" size="sm">
-              08
-            </Button>
-            <Button variant="outline" size="sm">
-              09
-            </Button>
-            <Button variant="outline" size="sm">
-              10
-            </Button>
-            <Button variant="outline" size="sm">
-              11
-            </Button>
-            <Button variant="outline" size="sm">
-              12
-            </Button>
-            <Button variant="outline" size="sm">
-              13
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8">
-              <ChevronRightIcon className="h-4 w-4" />
-              <span className="sr-only">Suivant</span>
-            </Button>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {data.items.map((user: UserDTO) => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="p-4 whitespace-nowrap">
+                      {user.lastName} {user.firstName}
+                    </td>
+                    <td className="p-4 whitespace-nowrap">{user.email}</td>
+                    <td className="p-4 whitespace-nowrap">{user.username}</td>
+                    <td className="p-4 whitespace-nowrap">{formatDate(user.createdAt)}</td>
+                    <td className="p-4 whitespace-nowrap">
+                      <UserStatusBadge
+                        status={user.status || (user.isActive ? 'ACTIVE' : 'INACTIVE')}
+                      />
+                    </td>
+                    <td className="p-4">
+                      <div className="flex flex-wrap gap-1">
+                        {user.roles.map((role) => (
+                          <UserRoleBadge key={role} role={role} />
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-4 whitespace-nowrap text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleActionClick(user, 'edit')}>
+                            Modifier l'utilisateur
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(user, 'roles')}>
+                            Modifier les rôles
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(user, 'status')}>
+                            Modifier le statut
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleActionClick(user, 'resend')}>
+                            Renvoyer l'email de mot de passe
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
+
+        {renderPagination()}
       </div>
+
+      {/* Modales */}
+      {selectedUser && (
+        <>
+          <EditUserModal
+            user={selectedUser}
+            isOpen={editUserOpen}
+            onClose={() => setEditUserOpen(false)}
+            onSuccess={handleSuccess}
+          />
+          <EditRolesModal
+            user={selectedUser}
+            isOpen={editRolesOpen}
+            onClose={() => setEditRolesOpen(false)}
+            onSuccess={handleSuccess}
+          />
+          <EditStatusModal
+            user={selectedUser}
+            isOpen={editStatusOpen}
+            onClose={() => setEditStatusOpen(false)}
+            onSuccess={handleSuccess}
+          />
+          <ResendPasswordModal
+            user={selectedUser}
+            isOpen={resendPasswordOpen}
+            onClose={() => setResendPasswordOpen(false)}
+            onSuccess={handleSuccess}
+          />
+        </>
+      )}
     </AuthenticatedLayout>
   );
 }
