@@ -14,7 +14,7 @@ RUN npm ci
 COPY . .
 
 # Définit NODE_ENV à "test" par défaut
-ENV NODE_ENV=uat
+ENV NODE_ENV=test
 
 # Build Next.js based on the preferred package manager
 RUN npm run build
