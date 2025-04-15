@@ -1,142 +1,307 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, FileText, Settings, LogOut, ChevronLeft } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-auth';
-import { Logo } from './logo';
-import { useMediaQuery } from '@/hooks/use-media-query';
-import { useProfileStore } from '@/lib/stores/profile-store';
+import {
+  Users,
+  UserPlus,
+  FileText,
+  Settings,
+  ChevronDown,
+  ChevronRight,
+  LogOut,
+  Home,
+  X,
+} from 'lucide-react';
+import { useProfile } from '@/lib/api/hooks/use-profile';
+import { signOut } from 'next-auth/react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
+  mobileOpen: boolean;
+  setMobileOpen: (open: boolean) => void;
 }
 
-export function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
+export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: SidebarProps) {
   const pathname = usePathname();
-  const { logout } = useAuth();
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  const { profile } = useProfileStore();
+  const router = useRouter();
+  const { profile } = useProfile();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const isMobile = useIsMobile();
 
-  // Vérifier si l'utilisateur est admin
-  const isAdmin = profile?.roles?.some((role) => role === 'ADMIN' || role === 'SUPER_ADMIN');
+  // Vérifier si l'utilisateur a un rôle d'administrateur
+  const isAdmin = profile?.roles?.some(
+    (role) => role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN'
+  );
 
-  // Fermer automatiquement la sidebar sur mobile
-  useEffect(() => {
-    if (isMobile) {
-      setCollapsed(true);
+  // Fonction pour basculer l'état d'un menu
+  const toggleMenu = (menuId: string) => {
+    if (collapsed) {
+      setCollapsed(false);
+      // Attendre que le sidebar s'ouvre avant d'ouvrir le menu
+      setTimeout(() => {
+        setOpenMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
+      }, 300);
+    } else {
+      setOpenMenus((prev) => ({ ...prev, [menuId]: !prev[menuId] }));
     }
-  }, [isMobile, setCollapsed]);
+  };
 
-  // Fermer la sidebar lors d'un changement de route sur mobile
+  // Fermer tous les menus lorsque le sidebar est réduit
   useEffect(() => {
-    if (isMobile) {
-      setCollapsed(true);
+    if (collapsed) {
+      setOpenMenus({});
     }
-  }, [pathname, isMobile, setCollapsed]);
+  }, [collapsed]);
 
-  // Liste des éléments de navigation
-  const navItems = [
-    {
-      title: 'Tableau de bord',
-      href: '/dashboard',
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      show: true, // Toujours visible
-    },
-    {
-      title: 'Clients',
-      href: '/clients',
-      icon: <FileText className="h-5 w-5" />,
-      show: true, // Toujours visible
-    },
-    {
-      title: 'Utilisateurs',
-      href: '/users',
-      icon: <Users className="h-5 w-5" />,
-      show: isAdmin, // Visible uniquement pour les admins
-    },
-    {
-      title: 'Paramètres',
-      href: '/settings',
-      icon: <Settings className="h-5 w-5" />,
-      show: true, // Toujours visible
-    },
-  ];
+  // Fonction explicite pour fermer la sidebar sur mobile
+  const closeMobileSidebar = () => {
+    if (isMobile) {
+      setMobileOpen(false);
+    }
+  };
+
+  // Fonction pour gérer la déconnexion
+  const handleLogout = async () => {
+    try {
+      // Déconnecter l'utilisateur via NextAuth
+      await signOut({ redirect: false });
+
+      // Afficher un message de confirmation
+      toast.success('Vous avez été déconnecté avec succès');
+
+      // Rediriger vers la page de connexion
+      router.push('/auth/login');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      toast.error('Une erreur est survenue lors de la déconnexion');
+    }
+  };
+
+  // Déterminer si un lien est actif
+  const isActive = (path: string) => {
+    if (path === '/dashboard' && pathname === '/dashboard') {
+      return true;
+    }
+    if (path !== '/dashboard' && pathname.startsWith(path)) {
+      return true;
+    }
+    return false;
+  };
 
   return (
-    <>
-      {/* Overlay pour fermer la sidebar sur mobile */}
-      {isMobile && !collapsed && (
-        <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setCollapsed(true)} />
+    <div
+      data-sidebar="true"
+      className={cn(
+        'fixed inset-y-0 left-0 z-50 flex flex-col border-r bg-brand-blue text-white transition-all duration-300 ease-in-out',
+        // Desktop
+        !isMobile && (collapsed ? 'w-16' : 'w-64'),
+        // Mobile
+        isMobile && (mobileOpen ? 'translate-x-0' : '-translate-x-full'),
+        isMobile && 'w-64 shadow-lg'
       )}
+    >
+      <div className="flex h-16 items-center justify-between border-b border-brand-blue-light px-4">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          {/* Logo */}
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-brand-blue font-bold">
+            SF
+          </div>
+          {(!collapsed || isMobile) && (
+            <span className="text-lg font-semibold">Services Financiers</span>
+          )}
+        </Link>
 
-      <aside
-        className={cn(
-          'fixed top-0 left-0 z-50 h-full bg-white border-r transition-all duration-300 ease-in-out',
-          collapsed ? 'w-0 md:w-16 -translate-x-full md:translate-x-0' : 'w-64'
+        {/* Bouton de fermeture sur mobile */}
+        {isMobile && (
+          <button
+            type="button"
+            className="p-2 rounded-md text-white hover:bg-brand-blue-light focus:outline-none"
+            onClick={closeMobileSidebar}
+            aria-label="Fermer le menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
         )}
-      >
-        <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-4 border-b">
-            {!collapsed && (
-              <div className="flex-1">
-                <Logo minimal={true} />
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-2">
+        <nav className="flex flex-col gap-1">
+          {/* Dashboard */}
+          <Link
+            href="/dashboard"
+            className={cn(
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+              isActive('/dashboard')
+                ? 'bg-white text-brand-blue font-medium'
+                : 'text-white hover:bg-brand-blue-light'
+            )}
+            onClick={isMobile ? closeMobileSidebar : undefined}
+          >
+            <Home className="h-5 w-5 flex-shrink-0" />
+            {(!collapsed || isMobile) && <span>Tableau de bord</span>}
+          </Link>
+
+          {/* Utilisateurs - visible uniquement pour les admins */}
+          {isAdmin && (
+            <div>
+              <button
+                onClick={() => toggleMenu('users')}
+                className={cn(
+                  'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                  isActive('/users')
+                    ? 'bg-white text-brand-blue font-medium'
+                    : 'text-white hover:bg-brand-blue-light'
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Users className="h-5 w-5 flex-shrink-0" />
+                  {(!collapsed || isMobile) && <span>Utilisateurs</span>}
+                </div>
+                {(!collapsed || isMobile) && (
+                  <div>
+                    {openMenus.users ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </div>
+                )}
+              </button>
+
+              {openMenus.users && (!collapsed || isMobile) && (
+                <div className="ml-6 mt-1 flex flex-col gap-1">
+                  <Link
+                    href="/users"
+                    className={cn(
+                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                      isActive('/users') && pathname === '/users'
+                        ? 'bg-brand-blue-light text-white font-medium'
+                        : 'text-white/90 hover:bg-brand-blue-light'
+                    )}
+                    onClick={isMobile ? closeMobileSidebar : undefined}
+                  >
+                    <span>Liste des utilisateurs</span>
+                  </Link>
+                  <Link
+                    href="/users/add"
+                    className={cn(
+                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                      isActive('/users/add')
+                        ? 'bg-brand-blue-light text-white font-medium'
+                        : 'text-white/90 hover:bg-brand-blue-light'
+                    )}
+                    onClick={isMobile ? closeMobileSidebar : undefined}
+                  >
+                    <span>Ajouter un utilisateur</span>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Clients */}
+          <div>
+            <button
+              onClick={() => toggleMenu('clients')}
+              className={cn(
+                'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/clients')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <UserPlus className="h-5 w-5 flex-shrink-0" />
+                {(!collapsed || isMobile) && <span>Clients</span>}
+              </div>
+              {(!collapsed || isMobile) && (
+                <div>
+                  {openMenus.clients ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </div>
+              )}
+            </button>
+
+            {openMenus.clients && (!collapsed || isMobile) && (
+              <div className="ml-6 mt-1 flex flex-col gap-1">
+                <Link
+                  href="/clients"
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                    isActive('/clients') && pathname === '/clients'
+                      ? 'bg-brand-blue-light text-white font-medium'
+                      : 'text-white/90 hover:bg-brand-blue-light'
+                  )}
+                  onClick={isMobile ? closeMobileSidebar : undefined}
+                >
+                  <span>Liste des clients</span>
+                </Link>
+                <Link
+                  href="/clients/new"
+                  className={cn(
+                    'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                    isActive('/clients/new')
+                      ? 'bg-brand-blue-light text-white font-medium'
+                      : 'text-white/90 hover:bg-brand-blue-light'
+                  )}
+                  onClick={isMobile ? closeMobileSidebar : undefined}
+                >
+                  <span>Ajouter un client</span>
+                </Link>
               </div>
             )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCollapsed(!collapsed)}
-              className={cn('md:flex', collapsed ? 'hidden' : '')}
-            >
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only">Réduire le menu</span>
-            </Button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-4">
-            <ul className="space-y-1 px-2">
-              {navItems
-                .filter((item) => item.show)
-                .map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                        pathname === item.href
-                          ? 'bg-brand-blue text-white'
-                          : 'text-gray-700 hover:bg-gray-100',
-                        collapsed ? 'justify-center md:px-3' : ''
-                      )}
-                    >
-                      {item.icon}
-                      {!collapsed && <span>{item.title}</span>}
-                    </Link>
-                  </li>
-                ))}
-            </ul>
-          </nav>
+          {/* Documents */}
+          <Link
+            href="/documents"
+            className={cn(
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+              isActive('/documents')
+                ? 'bg-white text-brand-blue font-medium'
+                : 'text-white hover:bg-brand-blue-light'
+            )}
+            onClick={isMobile ? closeMobileSidebar : undefined}
+          >
+            <FileText className="h-5 w-5 flex-shrink-0" />
+            {(!collapsed || isMobile) && <span>Documents</span>}
+          </Link>
 
-          <div className="p-4 border-t mt-auto">
-            <Button
-              variant="ghost"
-              className={cn(
-                'w-full flex items-center gap-3 text-red-600 hover:bg-red-50 hover:text-red-700',
-                collapsed ? 'justify-center' : ''
-              )}
-              onClick={logout}
-            >
-              <LogOut className="h-5 w-5" />
-              {!collapsed && <span>Déconnexion</span>}
-            </Button>
-          </div>
-        </div>
-      </aside>
-    </>
+          {/* Paramètres */}
+          <Link
+            href="/settings"
+            className={cn(
+              'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+              isActive('/settings')
+                ? 'bg-white text-brand-blue font-medium'
+                : 'text-white hover:bg-brand-blue-light'
+            )}
+            onClick={isMobile ? closeMobileSidebar : undefined}
+          >
+            <Settings className="h-5 w-5 flex-shrink-0" />
+            {(!collapsed || isMobile) && <span>Paramètres</span>}
+          </Link>
+        </nav>
+      </div>
+
+      <div className="border-t border-brand-blue-light p-2">
+        <button
+          onClick={handleLogout}
+          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-white transition-colors hover:bg-brand-blue-light"
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          {(!collapsed || isMobile) && <span>Déconnexion</span>}
+        </button>
+      </div>
+    </div>
   );
 }

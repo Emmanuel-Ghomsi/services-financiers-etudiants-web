@@ -1,17 +1,28 @@
 import type React from 'react';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Open_Sans, Inter } from 'next/font/google';
 import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Providers } from './providers';
 import { Toaster } from '@/components/ui/sonner';
 
-const inter = Inter({ subsets: ['latin'] });
+// Définir Open Sans comme police principale
+const openSans = Open_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-open-sans',
+});
+
+// Garder Inter comme police de secours
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: 'Services Financiers Étudiants - KYC',
+  title: 'Services Financiers Étudiants',
   description: 'Application de gestion des clients pour Services Financiers Étudiants',
-  generator: 'v0.dev',
 };
 
 export default function RootLayout({
@@ -20,8 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="fr" suppressHydrationWarning className={`${openSans.variable} ${inter.variable}`}>
+      <body className={openSans.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <Providers>{children}</Providers>
           <Toaster />
@@ -30,5 +41,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-import './globals.css';

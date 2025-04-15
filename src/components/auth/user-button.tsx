@@ -47,7 +47,7 @@ export function UserButton({ name = "Emmanuel", email = "emmanuel@example.com", 
         <DropdownMenuItem onClick={() => router.push("/profile")}>Profil</DropdownMenuItem>
         <DropdownMenuItem onClick={() => router.push("/settings")}>Paramètres</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push("/login")}>Déconnexion</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push("/auth/login")}>Déconnexion</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

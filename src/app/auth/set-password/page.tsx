@@ -55,7 +55,7 @@ export default function SetPasswordPage() {
   // Si aucun token n'est fourni, afficher un message d'erreur
   if (!token) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-blue">
+      <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
         <div className="flex flex-col items-center mb-10">
           <Logo />
         </div>
@@ -69,7 +69,7 @@ export default function SetPasswordPage() {
               </p>
               <Button
                 className="mt-4 bg-brand-blue hover:bg-brand-blue/90"
-                onClick={() => router.push('/login')}
+                onClick={() => router.push('/auth/login')}
               >
                 Retour à la connexion
               </Button>
@@ -90,7 +90,7 @@ export default function SetPasswordPage() {
       });
 
       // Rediriger vers la page de confirmation
-      router.push('/set-password/success');
+      router.push('/auth/set-password/success');
     } catch (error) {
       const errorMessage =
         error instanceof Error

@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-blue">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
       <div className="flex flex-col items-center mb-10">
         <Logo />
       </div>
@@ -107,7 +107,7 @@ export default function ForgotPasswordPage() {
         </CardContent>
         <CardFooter className="flex justify-center">
           <Button variant="link" asChild className="text-brand-blue hover:text-brand-blue/80">
-            <Link href="/login">Retour à la connexion</Link>
+            <Link href="/auth/login">Retour à la connexion</Link>
           </Button>
         </CardFooter>
       </Card>

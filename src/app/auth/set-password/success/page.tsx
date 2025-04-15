@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function SetPasswordSuccessPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-blue">
+    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
       <div className="flex flex-col items-center mb-10">
         <Logo />
       </div>

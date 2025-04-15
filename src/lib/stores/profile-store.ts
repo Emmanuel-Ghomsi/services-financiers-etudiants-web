@@ -1,30 +1,25 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { UserProfile } from '@/types/user-profile';
+import type { UserProfile } from '@/lib/api/hooks/use-profile';
 
 interface ProfileState {
   profile: UserProfile | null;
   isLoading: boolean;
   error: string | null;
-  setProfile: (profile: UserProfile | null) => void;
+  setProfile: (profile: UserProfile) => void;
+  updateProfilePicture: (url: string) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
-  clearProfile: () => void;
 }
 
-export const useProfileStore = create<ProfileState>()(
-  persist(
-    (set) => ({
-      profile: null,
-      isLoading: false,
-      error: null,
-      setProfile: (profile) => set({ profile, error: null }),
-      setLoading: (isLoading) => set({ isLoading }),
-      setError: (error) => set({ error }),
-      clearProfile: () => set({ profile: null, error: null }),
-    }),
-    {
-      name: 'profile-storage',
-    }
-  )
-);
+export const useProfileStore = create<ProfileState>((set) => ({
+  profile: null,
+  isLoading: false,
+  error: null,
+  setProfile: (profile) => set({ profile }),
+  updateProfilePicture: (url) =>
+    set((state) => ({
+      profile: state.profile ? { ...state.profile, profilePicture: url } : null,
+    })),
+  setLoading: (isLoading) => set({ isLoading }),
+  setError: (error) => set({ error }),
+}));

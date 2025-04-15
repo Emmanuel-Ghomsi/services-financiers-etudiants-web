@@ -4,8 +4,11 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --brand-blue: #0055a4;
+    --brand-blue-light: #3378b5;
+    --brand-blue-dark: #003b72;
+    --background: #f0f7ff;
+    --foreground: #1a1a1a;
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -13,10 +16,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 205 100% 31%;
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 142 59% 49%;
+    --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
@@ -30,7 +33,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 205 100% 31%;
+    --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
   }
@@ -45,10 +48,10 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 205 100% 31%;
+    --primary: 210 40% 98%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 142 59% 49%;
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
@@ -71,46 +74,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-blue text-foreground min-h-screen;
+    @apply bg-background text-foreground;
+    font-family: var(--font-open-sans), var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+      BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
-}
-
-.form-container {
-  @apply bg-white rounded-lg p-6 shadow-md;
-}
-
-.step-item {
-  @apply flex items-center p-3 border-b border-gray-100 cursor-pointer;
-}
-
-.step-item.completed {
-  @apply bg-green-50;
-}
-
-.step-item.active {
-  @apply bg-blue-50;
-}
-
-.step-circle {
-  @apply w-6 h-6 rounded-full flex items-center justify-center text-xs mr-3;
-}
-
-.step-circle.completed {
-  @apply bg-brand-green text-white;
-}
-
-.step-circle.active {
-  @apply bg-brand-blue text-white;
-}
-
-.step-circle.inactive {
-  @apply bg-gray-200 text-gray-500;
-}
-
-.phone-input {
-  @apply flex items-center;
-}
-
-.phone-input-flag {
-  @apply flex items-center px-2 border-r;
 }

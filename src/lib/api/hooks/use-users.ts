@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import { useEffect } from 'react';
@@ -18,6 +18,7 @@ export function useUsers(params: UserListRequest) {
   const { data: session } = useSession();
   const { toast } = useToast();
   const { setUsers, setLoading, setError, addUser } = useUserStore();
+  const queryClient = useQueryClient(); // Ajout du queryClient
 
   const query = useQuery<UserPaginationDTO>({
     queryKey: ['users', params],
@@ -67,14 +68,18 @@ export function useUsers(params: UserListRequest) {
       const errorMessage =
         query.error instanceof Error ? query.error.message : 'Une erreur est survenue';
       setError(errorMessage);
-      toast(errorMessage, 'error');
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   }, [query.error, setError, toast]);
 
   // Mettre à jour le statut de chargement
   useEffect(() => {
-    setLoading(query.isLoading);
-  }, [query.isLoading, setLoading]);
+    setLoading(query.isPending);
+  }, [query.isPending, setLoading]);
 
   // Fonction pour créer un nouvel utilisateur
   const registerUserMutation = useMutation({
@@ -101,13 +106,22 @@ export function useUsers(params: UserListRequest) {
     },
     onSuccess: (data) => {
       addUser(data as UserDTO);
-      toast('Utilisateur créé avec succès', 'success');
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur créé avec succès',
+        variant: 'default',
+      });
+
+      // Invalider le cache pour forcer un rechargement des données
+      queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (error) => {
-      toast(
-        error instanceof Error ? error.message : "Erreur lors de la création de l'utilisateur",
-        'error'
-      );
+      toast({
+        title: 'Erreur',
+        description:
+          error instanceof Error ? error.message : "Erreur lors de la création de l'utilisateur",
+        variant: 'destructive',
+      });
     },
   });
 
@@ -120,7 +134,11 @@ export function useUsers(params: UserListRequest) {
   };
 
   return {
-    ...query,
+    data: query.data,
+    isLoading: query.isPending,
+    error: query.error,
+    refetch: query.refetch,
     registerUser,
+    isRegistering: registerUserMutation.isPending,
   };
 }

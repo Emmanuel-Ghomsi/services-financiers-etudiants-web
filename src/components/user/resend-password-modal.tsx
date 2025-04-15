@@ -13,6 +13,7 @@ import type { UserDTO } from '@/types/user';
 import { AlertCircle } from 'lucide-react';
 import { useResendFirstLoginEmail } from '@/lib/api/hooks/use-user-mutations';
 import { LoadingButton } from '@/components/ui/loading-button';
+import { useToast } from '@/hooks/use-toast';
 
 interface ResendPasswordModalProps {
   user: UserDTO;
@@ -28,8 +29,18 @@ export function ResendPasswordModal({
   onSuccess,
 }: ResendPasswordModalProps) {
   const { mutate: resendEmail, isPending } = useResendFirstLoginEmail();
+  const { toast } = useToast();
 
   const handleResend = async () => {
+    // Vérifier si l'utilisateur peut recevoir un email de mot de passe
+    if (user.hasSetPassword && user.status !== 'PENDING_VERIFICATION') {
+      // Utilisons toast avec une seule chaîne de caractères
+      toast(
+        "Impossible d'envoyer un email de réinitialisation à un utilisateur qui s'est déjà connecté ou dont l'email est vérifié"
+      );
+      return;
+    }
+
     resendEmail(
       { email: user.email },
       {
