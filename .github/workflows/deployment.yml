@@ -35,7 +35,6 @@ jobs:
             NODE_ENV=production
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.yml"
-            ENV_FILE=".env.production"
           elif [ "${BRANCH}" = "uat" ]; then
             PROJECT_DIR="services-financiers-etudiants-web-uat"
             ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}
@@ -43,7 +42,6 @@ jobs:
             NODE_ENV=test
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.uat.yml"
-            ENV_FILE=".env.test"
           else
             echo "❌ Branche ${BRANCH} non prévue pour le déploiement"
             exit 1
@@ -66,7 +64,11 @@ jobs:
             git pull origin $BRANCH
 
             echo "🐳 Déploiement avec Docker Compose"
-            docker-compose --env-file $ENV_FILE -f $COMPOSE_FILE up -d --build
+            if [ "${BRANCH}" = "main" ]; then
+              docker-compose --env-file .env.production -f $COMPOSE_FILE up -d --build
+            elif [ "${BRANCH}" = "uat" ]; then
+              docker-compose --env-file .env.test -f $COMPOSE_FILE up -d --build
+            fi
 
             echo "📄 Logs récents (100 lignes) :"
             docker-compose logs --tail=100
