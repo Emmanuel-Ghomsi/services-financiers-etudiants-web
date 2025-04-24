@@ -102,7 +102,7 @@ export function useClientFilePermissions() {
     isAdvisor,
     canCreateFile,
     canEditFile,
-    canViewFile, // Nouvelle fonction exposée
+    canViewFile,
     canDeleteFile,
     canSubmitFile,
     canValidateAsAdmin,

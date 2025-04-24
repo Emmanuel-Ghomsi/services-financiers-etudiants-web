@@ -265,3 +265,27 @@ export interface RegistrationProgress {
   steps: Record<ClientRegistrationStep, StepStatus>;
   clientFileId?: string;
 }
+
+// ✅ Requête pour pagination + filtres
+export interface ClientFileListRequest {
+  page: number;
+  pageSize: number;
+  pageLimit: number;
+  filters?: {
+    reference?: string;
+    lastName?: string;
+    clientCode?: string;
+    status?: string;
+    email?: string;
+  };
+}
+
+// ✅ Structure de retour paginée
+export interface ClientFilePaginationDTO {
+  clientFiles: ClientFileDTO[];
+  currentPage: number;
+  totalItems: number;
+  totalPages: number;
+  pageSize: number;
+  pageLimit: number;
+}
