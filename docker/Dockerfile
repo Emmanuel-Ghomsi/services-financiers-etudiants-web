@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Omit --production flag for TypeScript devDependencies
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 COPY . .
 
