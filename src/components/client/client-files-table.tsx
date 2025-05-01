@@ -58,7 +58,7 @@ export function ClientFilesTable() {
 
     return Math.round((completedSteps / totalSteps) * 100);
   };
-  
+
   const prevLoadingRef = useRef(queryIsLoading);
   const prevErrorRef = useRef(queryError);
 
@@ -189,7 +189,10 @@ export function ClientFilesTable() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <ClientFileStatusBadge reject={client.rejectionReason} status={client.status} />
+                          <ClientFileStatusBadge
+                            reject={client.rejectionReason}
+                            status={client.status}
+                          />
                         </TableCell>
                         <TableCell>{client.creatorUsername}</TableCell>
                         <TableCell className="text-right">
