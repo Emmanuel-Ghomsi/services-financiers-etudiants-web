@@ -59,7 +59,10 @@ export function NotificationsDropdown() {
                     {new Date(notification.createdAt).toLocaleString()}
                   </p>
                   {notification.targetUrl && (
-                    <a href={notification.targetUrl} className="text-sm text-blue-500 underline mt-1">
+                    <a
+                      href={notification.targetUrl}
+                      className="text-sm text-blue-500 underline mt-1"
+                    >
                       Voir l’élément
                     </a>
                   )}
