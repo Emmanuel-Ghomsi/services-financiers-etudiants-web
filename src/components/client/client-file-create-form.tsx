@@ -30,8 +30,6 @@ export function ClientFileCreateForm({
   const form = useForm<ClientFileCreateRequest>({
     resolver: zodResolver(ClientFileCreateRequestSchema),
     defaultValues: {
-      reference: defaultValues?.reference || '',
-      clientCode: defaultValues?.clientCode || '',
       reason: defaultValues?.reason || undefined,
       clientType: defaultValues?.clientType || undefined,
       nonResident: defaultValues?.nonResident ?? false,
@@ -48,34 +46,6 @@ export function ClientFileCreateForm({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
             <div className="space-y-4">
-              <FormField
-                control={form.control}
-                name="reference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Référence</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Format: REF/SFE/XXXX/DO" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="clientCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code client</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Code client" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
               <FormField
                 control={form.control}
                 name="reason"
