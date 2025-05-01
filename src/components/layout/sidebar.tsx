@@ -110,10 +110,10 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         <Link href="/dashboard" className="flex items-center gap-2">
           {/* Logo */}
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-white text-brand-blue font-bold">
-            SF
+            SFE
           </div>
           {(!collapsed || isMobile) && (
-            <span className="text-lg font-semibold">Services Financiers</span>
+            <span className="text-lg font-semibold">Services Financiers Etudiants</span>
           )}
         </Link>
 
@@ -260,36 +260,6 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
               </div>
             )}
           </div>
-
-          {/* Documents */}
-          <Link
-            href="/documents"
-            className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-              isActive('/documents')
-                ? 'bg-white text-brand-blue font-medium'
-                : 'text-white hover:bg-brand-blue-light'
-            )}
-            onClick={isMobile ? closeMobileSidebar : undefined}
-          >
-            <FileText className="h-5 w-5 flex-shrink-0" />
-            {(!collapsed || isMobile) && <span>Documents</span>}
-          </Link>
-
-          {/* Paramètres */}
-          <Link
-            href="/settings"
-            className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
-              isActive('/settings')
-                ? 'bg-white text-brand-blue font-medium'
-                : 'text-white hover:bg-brand-blue-light'
-            )}
-            onClick={isMobile ? closeMobileSidebar : undefined}
-          >
-            <Settings className="h-5 w-5 flex-shrink-0" />
-            {(!collapsed || isMobile) && <span>Paramètres</span>}
-          </Link>
         </nav>
       </div>
 

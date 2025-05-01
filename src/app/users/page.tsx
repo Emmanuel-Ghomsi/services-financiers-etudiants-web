@@ -165,7 +165,7 @@ export default function UsersPage() {
 
   // Vérifier si un utilisateur peut être modifié
   const canEditUser = useCallback((user: UserDTO) => {
-    return !user.hasSetPassword || user.status === 'PENDING_VERIFICATION';
+    return !user.emailVerified;
   }, []);
 
   const renderPagination = () => {

@@ -2,8 +2,6 @@ import { z } from 'zod';
 
 // Schéma de validation pour la création d'une fiche client
 export const ClientFileCreateRequestSchema = z.object({
-  reference: z.string().regex(/^REF\/SFE\/\d{4}\/DO$/, 'Format de référence invalide'),
-  clientCode: z.string().min(3, 'Code client invalide'),
   reason: z.enum(['Entrée en relation', 'Revue périodique'], {
     errorMap: () => ({ message: 'Veuillez sélectionner un motif valide' }),
   }),
@@ -186,6 +184,7 @@ export interface ClientFileDTO {
   nonResident: boolean;
   status: string;
   creatorId: string;
+  creatorUsername?: string;
 
   lastName?: string | null;
   firstName?: string | null;

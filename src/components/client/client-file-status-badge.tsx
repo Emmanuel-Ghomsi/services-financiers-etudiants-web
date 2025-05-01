@@ -2,11 +2,12 @@ import { cn } from '@/lib/utils';
 import { ClientFileStatus } from '@/lib/constants/client-file-status';
 
 interface ClientFileStatusBadgeProps {
+  reject?: string | null;
   status: string;
   className?: string;
 }
 
-export function ClientFileStatusBadge({ status, className }: ClientFileStatusBadgeProps) {
+export function ClientFileStatusBadge({ reject, status, className }: ClientFileStatusBadgeProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case ClientFileStatus.IN_PROGRESS:
@@ -53,7 +54,7 @@ export function ClientFileStatusBadge({ status, className }: ClientFileStatusBad
         className
       )}
     >
-      {getStatusLabel(status)}
+      {getStatusLabel(status)} {status == ClientFileStatus.REJECTED ? ' : ' + reject : ''}
     </span>
   );
 }

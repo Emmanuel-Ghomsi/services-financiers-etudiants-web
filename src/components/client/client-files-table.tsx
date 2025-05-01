@@ -42,9 +42,8 @@ export function ClientFilesTable() {
 
   // Fonction pour calculer la progression d'une fiche client
   const calculateCompletion = (clientFile: any) => {
-    // Cette logique devra être adaptée selon votre modèle de données
     let completedSteps = 0;
-    const totalSteps = 9; // Nombre total d'étapes
+    const totalSteps = 9;
 
     // Vérifier chaque étape
     if (clientFile.reference && clientFile.clientCode) completedSteps++;
@@ -59,9 +58,7 @@ export function ClientFilesTable() {
 
     return Math.round((completedSteps / totalSteps) * 100);
   };
-
-  // Remplacer par cette approche qui évite les mises à jour en cascade:
-  // Utiliser une référence pour suivre l'état précédent
+  
   const prevLoadingRef = useRef(queryIsLoading);
   const prevErrorRef = useRef(queryError);
 
@@ -154,6 +151,7 @@ export function ClientFilesTable() {
                     <TableHead>Motif</TableHead>
                     <TableHead>Progression</TableHead>
                     <TableHead>Statut</TableHead>
+                    <TableHead>Opérateur</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -191,8 +189,9 @@ export function ClientFilesTable() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <ClientFileStatusBadge status={client.status} />
+                          <ClientFileStatusBadge reject={client.rejectionReason} status={client.status} />
                         </TableCell>
+                        <TableCell>{client.creatorUsername}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">
                             {permissions.canEditFile(client) ? (

@@ -66,6 +66,36 @@ export function useClientFile(clientFileId?: string) {
       });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientFiles'] });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Erreur lors de la mise à jour de la fiche client',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateClientFileStatusMutation = useMutation({
+    mutationFn: async ({ status }: { status: string }) => {
+      if (!clientFileId) {
+        throw new Error('ID de fiche client non fourni');
+      }
+
+      if (!session?.accessToken) {
+        throw new Error('Non authentifié');
+      }
+
+      return apiRequest<ClientFileDTO>(`/client-files/${clientFileId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      });
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientFile', clientFileId] });
     },
     onError: (error) => {
@@ -536,6 +566,18 @@ export function useClientFile(clientFileId?: string) {
     }
   };
 
+  const updateClientFileStatus = async (
+    id: string,
+    status: string
+  ): Promise<ClientFileDTO | null> => {
+    try {
+      return await updateClientFileStatusMutation.mutateAsync({ status });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la fiche client:', error);
+      return null;
+    }
+  };
+
   // Fonction pour mettre à jour l'identité
   const updateIdentity = async (data: ClientFileIdentityRequest): Promise<void> => {
     await updateIdentityMutation.mutateAsync(data);
@@ -610,6 +652,8 @@ export function useClientFile(clientFileId?: string) {
     refetch: query.refetch,
     updateClientFile,
     isUpdating: updateClientFileMutation.isPending,
+    updateClientFileStatus,
+    isUpdatingStatus: updateClientFileStatusMutation.isPending,
     updateIdentity,
     isUpdatingIdentity: updateIdentityMutation.isPending,
     updateAddress,

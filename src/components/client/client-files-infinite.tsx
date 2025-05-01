@@ -141,6 +141,7 @@ export function ClientFilesInfinite() {
                     <TableHead>Motif</TableHead>
                     <TableHead>Progression</TableHead>
                     <TableHead>Statut</TableHead>
+                    <TableHead>Opérateur</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -175,6 +176,7 @@ export function ClientFilesInfinite() {
                         <TableCell>
                           <ClientFileStatusBadge status={client.status} />
                         </TableCell>
+                        <TableCell>{client.creatorUsername}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">
                             {permissions.canEditFile(client) ? (

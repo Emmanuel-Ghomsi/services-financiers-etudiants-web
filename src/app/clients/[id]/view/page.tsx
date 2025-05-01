@@ -642,6 +642,54 @@ export default function ViewClientFilePage() {
                     <p className="text-sm font-medium">Email</p>
                     <p className="text-sm">{clientFile.email || '-'}</p>
                   </div>
+                  <div>
+                    <p className="text-sm font-medium">Nom de jeune fille</p>
+                    <p className="text-sm">{clientFile.maidenName || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Date de naissance</p>
+                    <p className="text-sm">
+                      {clientFile.birthDate
+                        ? new Date(clientFile.birthDate).toLocaleDateString()
+                        : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Ville de naissance</p>
+                    <p className="text-sm">{clientFile.birthCity || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pays de naissance</p>
+                    <p className="text-sm">{clientFile.birthCountry || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Nationalité</p>
+                    <p className="text-sm">{clientFile.nationality || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Type de pièce d'identité</p>
+                    <p className="text-sm">{clientFile.identityType || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Numéro de pièce d'identité</p>
+                    <p className="text-sm">{clientFile.identityNumber || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Représentant légal</p>
+                    <p className="text-sm">{clientFile.legalRepresentative || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Possède un compte bancaire</p>
+                    <p className="text-sm">{clientFile.hasBankAccount ? 'Oui' : 'Non'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Numéro d'identification fiscale</p>
+                    <p className="text-sm">{clientFile.taxIdNumber || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pays d'imposition</p>
+                    <p className="text-sm">{clientFile.taxCountry || '-'}</p>
+                  </div>
                 </div>
               </div>
 
@@ -650,12 +698,270 @@ export default function ViewClientFilePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-medium">Adresse du domicile</p>
-                    <p className="text-sm">{clientFile.homeAddress || '-'}</p>
+                    <p className="text-sm whitespace-pre-line">{clientFile.homeAddress || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Adresse postale</p>
+                    <p className="text-sm whitespace-pre-line">{clientFile.postalAddress || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Pays de résidence fiscale</p>
+                    <p className="text-sm">{clientFile.taxResidenceCountry || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium">Numéros de téléphone</p>
                     <p className="text-sm">{clientFile.phoneNumbers || '-'}</p>
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Profession</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Profession</p>
+                    <p className="text-sm">{clientFile.profession || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Secteur d'activité</p>
+                    <p className="text-sm">{clientFile.businessSector || '-'}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Date de début d'activité</p>
+                    <p className="text-sm">
+                      {clientFile.activityStartDate
+                        ? new Date(clientFile.activityStartDate).toLocaleDateString()
+                        : '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Zone d'activité</p>
+                    <p className="text-sm">{clientFile.activityArea || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Situation financière</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Sources de revenus</p>
+                    <p className="text-sm whitespace-pre-line">{clientFile.incomeSources || '-'}</p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Revenu mensuel</p>
+                      <p className="text-sm">{clientFile.monthlyIncome || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Devise</p>
+                      <p className="text-sm">{clientFile.incomeCurrency || '-'}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Origine et destination des fonds</p>
+                    <p className="text-sm whitespace-pre-line">
+                      {clientFile.fundsOriginDestination || '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Patrimoine</p>
+                    <p className="text-sm whitespace-pre-line">{clientFile.assets || '-'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Transactions internationales</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Opérations internationales</p>
+                    <p className="text-sm">{clientFile.hasInternationalOps ? 'Oui' : 'Non'}</p>
+                  </div>
+                  {clientFile.hasInternationalOps && (
+                    <>
+                      <div>
+                        <p className="text-sm font-medium">Pays concernés</p>
+                        <p className="text-sm">{clientFile.transactionCountries || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Devises utilisées</p>
+                        <p className="text-sm">{clientFile.transactionCurrencies || '-'}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Services</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Comptes et services proposés</p>
+                    <p className="text-sm whitespace-pre-line">
+                      {clientFile.offeredAccounts || '-'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Opérations</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Opérations attendues</p>
+                    <p className="text-sm whitespace-pre-line">
+                      {clientFile.expectedOperations || '-'}
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Montant des crédits</p>
+                      <p className="text-sm">{clientFile.creditAmount || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Montant des débits</p>
+                      <p className="text-sm">{clientFile.debitAmount || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Statut PPE</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">
+                      Est une Personne Politiquement Exposée (PPE)
+                    </p>
+                    <p className="text-sm">{clientFile.isPEP ? 'Oui' : 'Non'}</p>
+                  </div>
+                  {clientFile.isPEP && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Type de PPE</p>
+                          <p className="text-sm">{clientFile.pepType || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Mandat politique</p>
+                          <p className="text-sm">{clientFile.pepMandate || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Date de fin de mandat</p>
+                          <p className="text-sm">
+                            {clientFile.pepEndDate
+                              ? new Date(clientFile.pepEndDate).toLocaleDateString()
+                              : '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Type de lien avec la PPE</p>
+                          <p className="text-sm">{clientFile.pepLinkType || '-'}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Nom de la PPE</p>
+                          <p className="text-sm">{clientFile.pepLastName || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Prénom de la PPE</p>
+                          <p className="text-sm">{clientFile.pepFirstName || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Date de naissance de la PPE</p>
+                          <p className="text-sm">
+                            {clientFile.pepBirthDate
+                              ? new Date(clientFile.pepBirthDate).toLocaleDateString()
+                              : '-'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Lieu de naissance de la PPE</p>
+                          <p className="text-sm">{clientFile.pepBirthPlace || '-'}</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Classification LBC/FT</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Niveau de risque LBC/FT</p>
+                      <p className="text-sm">{clientFile.riskLevel || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Source de la classification</p>
+                      <p className="text-sm">{clientFile.classificationSource || '-'}</p>
+                    </div>
+                  </div>
+                  {clientFile.riskLevel === 'Élevé' && (
+                    <div>
+                      <p className="text-sm font-medium">
+                        Raison de la dégradation du niveau de risque
+                      </p>
+                      <p className="text-sm whitespace-pre-line">
+                        {clientFile.degradationReason || '-'}
+                      </p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Statut FATCA</p>
+                      <p className="text-sm">{clientFile.fatcaStatus || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Présence d'indices US</p>
+                      <p className="text-sm">{clientFile.hasUsIndications ? 'Oui' : 'Non'}</p>
+                    </div>
+                  </div>
+                  {clientFile.hasUsIndications && (
+                    <div>
+                      <p className="text-sm font-medium">Détails des indices US</p>
+                      <p className="text-sm whitespace-pre-line">
+                        {clientFile.usIndicationsDetails || '-'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Origine des fonds</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium">Sources des fonds</p>
+                    <p className="text-sm">
+                      {clientFile.fundSources && clientFile.fundSources.length > 0
+                        ? clientFile.fundSources.join(', ')
+                        : '-'}
+                    </p>
+                  </div>
+                  {clientFile.fundSources && clientFile.fundSources.includes('Don financier') && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium">Nom du donateur</p>
+                          <p className="text-sm">{clientFile.fundProviderName || '-'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Relation avec le donateur</p>
+                          <p className="text-sm">{clientFile.fundProviderRelation || '-'}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Explication du don</p>
+                        <p className="text-sm whitespace-pre-line">
+                          {clientFile.fundDonationExplanation || '-'}
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

@@ -10,6 +10,7 @@ export interface Notification {
   userId: string;
   message: string;
   read: boolean;
+  targetUrl?: string;
   createdAt: string;
   updatedAt: string;
 }
