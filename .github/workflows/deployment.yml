@@ -30,18 +30,18 @@ jobs:
         run: |
           if [ "${BRANCH}" = "main" ]; then
             PROJECT_DIR="services-financiers-etudiants-web"
-            echo "NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}" > .env.production
-            echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_UAT_URL }}" >> .env.production
-            echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env.production
-            echo "NODE_ENV=test" >> .env.production
+            ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_PATH_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NODE_ENV=production
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.yml"
             ENV_FILE=".env.production"
           elif [ "${BRANCH}" = "uat" ]; then
             PROJECT_DIR="services-financiers-etudiants-web-uat"
-            echo "NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}" > .env.local
-            echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_UAT_URL }}" >> .env.local
-            echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env.local
-            echo "NODE_ENV=test" >> .env.local
+            ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_UAT_URL }}
+            NODE_ENV=test
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.uat.yml"
             ENV_FILE=".env.local"
           else
@@ -54,6 +54,9 @@ jobs:
           ssh $VPS_USER@$VPS_HOST << EOF
             set -e
             cd $PROJECT_DIR
+
+            echo "🧪 Écriture dynamique du fichier .env"
+            echo "$ENV_CONTENT" > $ENV_FILE
 
             echo "📥 Pull du dernier code"
             git pull origin $BRANCH
