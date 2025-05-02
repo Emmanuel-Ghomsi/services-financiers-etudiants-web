@@ -6,7 +6,7 @@ services:
       dockerfile: docker/Dockerfile.uat
     restart: always
     env_file:
-      - .env.test
+      - .env.local
     environment:
       - NODE_ENV=test
     ports:

@@ -11,6 +11,9 @@ export async function apiRequest<T>(url: string, options: RequestInit = {}): Pro
     throw new Error('Session invalide');
   }
 
+  console.log(`API_URL : ${process.env.NEXT_PUBLIC_API_PATH_URL}`);
+  
+
   // Obtenir la session pour récupérer le token d'accès
   const session = await getSession();
   const token = session?.accessToken;
