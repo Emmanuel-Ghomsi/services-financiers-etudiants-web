@@ -58,10 +58,12 @@ jobs:
             echo "🧪 Écriture dynamique du fichier .env"
             echo "$ENV_CONTENT" > $ENV_FILE
 
+            if [ "$ENV_FILE" != ".env.local" ]; then
+              cp "$ENV_FILE" .env.local
+            fi
+
             echo "📥 Pull du dernier code"
             git pull origin $BRANCH
-
-            cp $ENV_FILE .env.local
 
             echo "🐳 Déploiement avec Docker Compose"
             docker-compose --env-file $ENV_FILE -f $COMPOSE_FILE up -d --build
