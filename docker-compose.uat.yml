@@ -8,7 +8,7 @@ services:
     env_file:
       - .env.test
     environment:
-      - NODE_ENV=uat
+      - NODE_ENV=test
     ports:
       - "2028:3000"
     volumes:
