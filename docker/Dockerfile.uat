@@ -13,19 +13,11 @@ RUN npm ci --legacy-peer-deps
 
 COPY . .
 
-# Ces variables seront passées dynamiquement au moment du build
-ARG NEXT_PUBLIC_API_PATH_URL
-ARG NEXTAUTH_URL
-ARG NEXTAUTH_SECRET
-ARG NODE_ENV
-
-ENV NEXT_PUBLIC_API_PATH_URL=$NEXT_PUBLIC_API_PATH_URL
-ENV NEXTAUTH_URL=$NEXTAUTH_URL
-ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
-ENV NODE_ENV=$NODE_ENV
+# Définit NODE_ENV
+ENV NODE_ENV=test
 
 # Build Next.js based on the preferred package manager
-RUN npm run build
+RUN npm run build:uat
 
 # Step 2. Production image, copy all the files and run next
 FROM base AS runner

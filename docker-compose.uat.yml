@@ -4,12 +4,11 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.uat
-      args:
-        NEXT_PUBLIC_API_PATH_URL: ${NEXT_PUBLIC_API_PATH_URL}
-        NEXTAUTH_URL: ${NEXTAUTH_URL}
-        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-        NODE_ENV: ${NODE_ENV}
     restart: always
+    env_file:
+      - .env.test
+    environment:
+      - NODE_ENV=test
     ports:
       - "2028:3000"
     volumes:

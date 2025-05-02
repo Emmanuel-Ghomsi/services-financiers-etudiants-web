@@ -43,7 +43,7 @@ jobs:
             NODE_ENV=test
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.uat.yml"
-            ENV_FILE=".env.local"
+            ENV_FILE=".env.test"
           else
             echo "❌ Branche ${BRANCH} non prévue pour le déploiement"
             exit 1
@@ -57,10 +57,6 @@ jobs:
 
             echo "🧪 Écriture dynamique du fichier .env"
             echo "$ENV_CONTENT" > $ENV_FILE
-
-            if [ "$ENV_FILE" != ".env.local" ]; then
-              cp "$ENV_FILE" .env.local
-            fi
 
             echo "📥 Pull du dernier code"
             git pull origin $BRANCH

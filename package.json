@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build:config": "ts-node -e \"const ts=require('typescript'); const fs=require('fs'); fs.writeFileSync('./next.config.js', ts.transpile(fs.readFileSync('./next.config.ts', 'utf8')).replace('exports.default =', 'module.exports ='))\"",
     "build": "npm run build:config && next build",
-    "build:uat": "npm run build:config && env-cmd -f .env.uat next build",
+    "build:uat": "npm run build:config && env-cmd -f .env.test next build",
     "start": "next start",
     "lint": "next lint"
   },
