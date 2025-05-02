@@ -12,7 +12,6 @@ COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 
 COPY . .
-COPY .env.test .env
 
 # Définit NODE_ENV à "test" par défaut
 ENV NODE_ENV=test
