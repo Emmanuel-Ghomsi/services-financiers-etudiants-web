@@ -13,11 +13,8 @@ RUN npm ci --legacy-peer-deps
 
 COPY . .
 
-# Définit NODE_ENV
-ENV NODE_ENV=test
-
-# Build Next.js based on the preferred package manager
-RUN npm run build
+# Build avec environnement test
+RUN npm run build:config && npx env-cmd -f .env.test next build
 
 # Step 2. Production image, copy all the files and run next
 FROM base AS runner
