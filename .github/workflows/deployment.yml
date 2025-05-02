@@ -30,24 +30,18 @@ jobs:
         run: |
           if [ "${BRANCH}" = "main" ]; then
             PROJECT_DIR="services-financiers-etudiants-web"
-            ENV_CONTENT=$(cat <<EOF
-            NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_PATH_URL }}
+            ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_PATH_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             NODE_ENV=production
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            EOF
-            )
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.yml"
             ENV_FILE=".env.production"
           elif [ "${BRANCH}" = "uat" ]; then
             PROJECT_DIR="services-financiers-etudiants-web-uat"
-            ENV_CONTENT=$(cat <<EOF
-            NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}
+            ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_UAT_URL }}
             NODE_ENV=test
-            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-            EOF
-            )
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
             COMPOSE_FILE="docker-compose.uat.yml"
             ENV_FILE=".env.test"
           else
