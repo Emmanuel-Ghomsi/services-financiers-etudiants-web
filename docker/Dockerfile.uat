@@ -1,4 +1,4 @@
-FROM node:23-slim AS base
+FROM node:23-alpine AS base
 
 # Step 1. Rebuild the source code only when needed
 FROM base AS builder
@@ -17,7 +17,7 @@ COPY . .
 ENV NODE_ENV=test
 
 # Build Next.js based on the preferred package manager
-RUN npm run build:uat
+RUN npm run build
 
 # Step 2. Production image, copy all the files and run next
 FROM base AS runner

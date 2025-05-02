@@ -1,4 +1,4 @@
-FROM node:23-slim AS base
+FROM node:23-alpine AS base
 
 # Step 1. Rebuild the source code only when needed
 FROM base AS builder
