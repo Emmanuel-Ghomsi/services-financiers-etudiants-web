@@ -25,12 +25,21 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import countries from '@/components/countries.json';
+import { Combobox } from '@/components/ui/combobox';
+import { Controller } from 'react-hook-form';
 
 interface IdentityFormProps {
   onSubmit: (data: ClientFileIdentityRequest) => Promise<void>;
   isSubmitting?: boolean;
   defaultValues?: Partial<ClientFileIdentityRequest>;
 }
+
+const identityTypes = [
+  { label: 'CNI', value: 'CNI' },
+  { label: 'Récépissé', value: 'Récépissé' },
+  { label: 'Passeport', value: 'Passeport' },
+];
 
 export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: IdentityFormProps) {
   const form = useForm<ClientFileIdentityRequest>({
@@ -149,8 +158,10 @@ export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: 
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
-                          initialFocus
+                          locale={fr}
+                          fromYear={1900}
+                          toYear={new Date().getFullYear()}
+                          disabled={(date) => date > new Date()}
                         />
                       </PopoverContent>
                     </Popover>
@@ -180,7 +191,18 @@ export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: 
                   <FormItem>
                     <FormLabel>Pays de naissance</FormLabel>
                     <FormControl>
-                      <Input placeholder="Pays de naissance" {...field} />
+                      <Controller
+                        control={form.control}
+                        name="birthCountry"
+                        render={({ field }) => (
+                          <Combobox
+                            options={countries}
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder="Sélectionner un pays"
+                          />
+                        )}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -208,7 +230,18 @@ export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: 
                   <FormItem>
                     <FormLabel>Type de pièce d'identité</FormLabel>
                     <FormControl>
-                      <Input placeholder="Type de pièce d'identité" {...field} />
+                      <Controller
+                        control={form.control}
+                        name="identityType"
+                        render={({ field }) => (
+                          <Combobox
+                            options={identityTypes}
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder="Sélectionner un type"
+                          />
+                        )}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -264,7 +297,18 @@ export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: 
                   <FormItem>
                     <FormLabel>Pays d'imposition</FormLabel>
                     <FormControl>
-                      <Input placeholder="Pays d'imposition" {...field} />
+                      <Controller
+                        control={form.control}
+                        name="taxCountry"
+                        render={({ field }) => (
+                          <Combobox
+                            options={countries}
+                            value={field.value || ''}
+                            onChange={field.onChange}
+                            placeholder="Sélectionner un pays"
+                          />
+                        )}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
