@@ -32,9 +32,9 @@ export function ClientFileStatusBadge({ reject, status, className }: ClientFileS
       case ClientFileStatus.IN_PROGRESS:
         return 'En cours';
       case ClientFileStatus.AWAITING_ADMIN_VALIDATION:
-        return "En attente (Conformité)"
+        return 'En attente (Conformité)';
       case ClientFileStatus.AWAITING_SUPERADMIN_VALIDATION:
-        return "En attente (Contrôle Interne)"
+        return 'En attente (Contrôle Interne)';
       case ClientFileStatus.REJECTED:
         return 'Rejetée';
       case ClientFileStatus.BEING_MODIFIED:
@@ -54,7 +54,12 @@ export function ClientFileStatusBadge({ reject, status, className }: ClientFileS
         className
       )}
     >
-      {getStatusLabel(status)} {status == ClientFileStatus.REJECTED ? ' : ' + reject : ''}
+      {getStatusLabel(status)}{' '}
+      {status == ClientFileStatus.REJECTED
+        ? reject && reject?.length > 25
+          ? ' : ' + reject?.substring(0, 25) + '...'
+          : ' : ' + reject
+        : ''}
     </span>
   );
 }
