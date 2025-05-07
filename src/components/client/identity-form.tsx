@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import countries from '@/components/countries.json';
+import countries from '@/data/countries.json';
 import { Combobox } from '@/components/ui/combobox';
 import { Controller } from 'react-hook-form';
 
@@ -159,9 +159,9 @@ export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: 
                           selected={field.value}
                           onSelect={field.onChange}
                           locale={fr}
-                          fromYear={1900}
                           toYear={new Date().getFullYear()}
                           disabled={(date) => date > new Date()}
+                          captionLayout="dropdown-buttons"
                         />
                       </PopoverContent>
                     </Popover>

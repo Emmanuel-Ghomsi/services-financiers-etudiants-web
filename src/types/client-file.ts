@@ -67,8 +67,8 @@ export type ClientFileSituationRequest = z.infer<typeof ClientFileSituationReque
 // Schéma de validation pour les transactions internationales
 export const ClientFileInternationalRequestSchema = z.object({
   hasInternationalOps: z.boolean().optional(),
-  transactionCountries: z.string().optional(),
-  transactionCurrencies: z.string().optional(),
+  transactionCountries: z.array(z.string()).optional(),
+  transactionCurrencies: z.array(z.string()).optional(),
 });
 
 export type ClientFileInternationalRequest = z.infer<typeof ClientFileInternationalRequestSchema>;

@@ -27,6 +27,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { useClientFilePermissions } from '@/hooks/use-client-file-permissions';
 import { useToast } from '@/hooks/use-toast';
 import { ClientFileStatus } from '@/lib/constants/client-file-status';
+import { type ClientFileInternationalRequest } from '@/types/client-file';
 
 // Définir les sources de fonds valides
 const VALID_FUND_SOURCES = [
@@ -204,9 +205,19 @@ export default function EditClientFilePage() {
 
   // Gérer la soumission du formulaire de transactions internationales
   const handleInternationalUpdate = async (data: any) => {
+    const formatted: ClientFileInternationalRequest = {
+      ...data,
+      transactionCountries: Array.isArray(data.transactionCountries)
+        ? data.transactionCountries.join(', ')
+        : data.transactionCountries,
+      transactionCurrencies: Array.isArray(data.transactionCurrencies)
+        ? data.transactionCurrencies.join(', ')
+        : data.transactionCurrencies,
+    };
+
     try {
       setError(null);
-      await updateInternational(data);
+      await updateInternational(formatted);
       updateProgressAfterSuccess(
         ClientRegistrationStep.TRANSACTIONS,
         ClientRegistrationStep.SERVICES
@@ -468,8 +479,12 @@ export default function EditClientFilePage() {
           isSubmitting={isUpdatingInternational}
           defaultValues={{
             hasInternationalOps: clientFile.hasInternationalOps || false,
-            transactionCountries: clientFile.transactionCountries || '',
-            transactionCurrencies: clientFile.transactionCurrencies || '',
+            transactionCountries: clientFile.transactionCountries
+              ? clientFile.transactionCountries.split(',').map((v) => v.trim())
+              : [],
+            transactionCurrencies: clientFile.transactionCurrencies
+              ? clientFile.transactionCurrencies.split(',').map((v) => v.trim())
+              : [],
           }}
         />
       )}

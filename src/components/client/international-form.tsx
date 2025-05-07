@@ -11,13 +11,15 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { LoadingButton } from '@/components/ui/loading-button';
 import {
   ClientFileInternationalRequestSchema,
   type ClientFileInternationalRequest,
 } from '@/types/client-file';
+import { MultiSelectCombobox } from '@/components/ui/multi-select-combobox';
+import countries from '@/data/countries.json';
+import currencies from '@/data/currencies.json';
 
 interface InternationalFormProps {
   onSubmit: (data: ClientFileInternationalRequest) => Promise<void>;
@@ -34,8 +36,8 @@ export function InternationalForm({
     resolver: zodResolver(ClientFileInternationalRequestSchema),
     defaultValues: {
       hasInternationalOps: defaultValues?.hasInternationalOps ?? false,
-      transactionCountries: defaultValues?.transactionCountries || '',
-      transactionCurrencies: defaultValues?.transactionCurrencies || '',
+      transactionCountries: defaultValues?.transactionCountries || [],
+      transactionCurrencies: defaultValues?.transactionCurrencies || [],
     },
   });
 
@@ -90,7 +92,12 @@ export function InternationalForm({
                     <FormItem>
                       <FormLabel>Pays concernés</FormLabel>
                       <FormControl>
-                        <Input placeholder="Pays concernés (séparés par des virgules)" {...field} />
+                        <MultiSelectCombobox
+                          options={countries}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Sélectionner les pays concernés"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -104,9 +111,11 @@ export function InternationalForm({
                     <FormItem>
                       <FormLabel>Devises utilisées</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Devises utilisées (séparées par des virgules)"
-                          {...field}
+                        <MultiSelectCombobox
+                          options={currencies}
+                          value={field.value}
+                          onChange={field.onChange}
+                          placeholder="Sélectionner les devises utilisées"
                         />
                       </FormControl>
                       <FormMessage />
