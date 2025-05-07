@@ -23,6 +23,14 @@ import { useState } from 'react';
 import { useClientFiles } from '@/lib/api/hooks/use-client-files';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { RejectFileDialog } from './reject-file-dialog';
 
 interface ClientFileActionsMenuProps {
@@ -45,6 +53,29 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
   const router = useRouter();
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [confirmValidateDialogOpen, setConfirmValidateDialogOpen] = useState(false);
+  const [validationType, setValidationType] = useState<'admin' | 'superadmin' | null>(null);
+  const [incompleteFileDialogOpen, setIncompleteFileDialogOpen] = useState(false);
+
+  // Fonction pour calculer la progression d'une fiche client
+  const calculateCompletion = (clientFile: ClientFileDTO) => {
+    // Cette logique devra être adaptée selon votre modèle de données
+    let completedSteps = 0;
+    const totalSteps = 9; // Nombre total d'étapes
+
+    // Vérifier chaque étape
+    if (clientFile.reference && clientFile.clientCode) completedSteps++;
+    if (clientFile.lastName && clientFile.firstName) completedSteps++;
+    if (clientFile.homeAddress) completedSteps++;
+    if (clientFile.profession) completedSteps++;
+    if (clientFile.incomeSources) completedSteps++;
+    if (clientFile.hasInternationalOps !== null) completedSteps++;
+    if (clientFile.offeredAccounts) completedSteps++;
+    if (clientFile.isPEP !== null) completedSteps++;
+    if (clientFile.riskLevel) completedSteps++;
+
+    return Math.round((completedSteps / totalSteps) * 100);
+  };
 
   const handleEdit = () => {
     router.push(`/clients/${file.id}`);
@@ -86,6 +117,18 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
     }
   };
 
+  const initiateValidation = (type: 'admin' | 'superadmin') => {
+    const completion = calculateCompletion(file);
+
+    if (completion < 100) {
+      setValidationType(type);
+      setIncompleteFileDialogOpen(true);
+    } else {
+      setValidationType(type);
+      setConfirmValidateDialogOpen(true);
+    }
+  };
+
   const handleValidateAsAdmin = async () => {
     try {
       await validateAsAdmin(file.id);
@@ -93,6 +136,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
         title: 'Succès',
         description: 'La fiche client a été validée avec succès',
       });
+      setConfirmValidateDialogOpen(false);
       onActionComplete?.();
     } catch (error) {
       toast({
@@ -110,6 +154,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
         title: 'Succès',
         description: 'La fiche client a été validée avec succès',
       });
+      setConfirmValidateDialogOpen(false);
       onActionComplete?.();
     } catch (error) {
       toast({
@@ -128,6 +173,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
         description: 'La fiche client a été rejetée',
       });
       setRejectDialogOpen(false);
+      setIncompleteFileDialogOpen(false);
       onActionComplete?.();
     } catch (error) {
       toast({
@@ -170,6 +216,14 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
     }
   };
 
+  const handleConfirmValidation = () => {
+    if (validationType === 'admin') {
+      handleValidateAsAdmin();
+    } else if (validationType === 'superadmin') {
+      handleValidateAsSuperAdmin();
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -202,16 +256,16 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
           )}
 
           {permissions.canValidateAsAdmin(file) && (
-            <DropdownMenuItem onClick={handleValidateAsAdmin}>
+            <DropdownMenuItem onClick={() => initiateValidation('admin')}>
               <CheckCircle className="mr-2 h-4 w-4" />
-              <span>Valider (Admin)</span>
+              <span>Valider (Conformité)</span>
             </DropdownMenuItem>
           )}
 
           {permissions.canValidateAsSuperAdmin(file) && (
-            <DropdownMenuItem onClick={handleValidateAsSuperAdmin}>
+            <DropdownMenuItem onClick={() => initiateValidation('superadmin')}>
               <CheckCircle className="mr-2 h-4 w-4" />
-              <span>Valider (Super Admin)</span>
+              <span>Valider (Contrôle Interne)</span>
             </DropdownMenuItem>
           )}
 
@@ -243,6 +297,58 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
         onOpenChange={setRejectDialogOpen}
         onReject={handleReject}
       />
+
+      {/* Dialogue de confirmation de validation */}
+      <Dialog open={confirmValidateDialogOpen} onOpenChange={setConfirmValidateDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Confirmation de validation</DialogTitle>
+            <DialogDescription>
+              Cette action est irréversible ! Rassurez-vous d'avoir consulté tous les champs avant
+              validation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p>Êtes-vous sûr de vouloir valider cette fiche client ?</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmValidateDialogOpen(false)}>
+              Non
+            </Button>
+            <Button onClick={handleConfirmValidation}>Oui, valider</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialogue pour fiche incomplète */}
+      <Dialog open={incompleteFileDialogOpen} onOpenChange={setIncompleteFileDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Fiche incomplète</DialogTitle>
+            <DialogDescription>
+              La fiche client n'est pas complète à 100%. Il est recommandé de la rejeter pour que
+              l'agent puisse la compléter.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <p>Souhaitez-vous rejeter cette fiche ?</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIncompleteFileDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setIncompleteFileDialogOpen(false);
+                setRejectDialogOpen(true);
+              }}
+            >
+              Rejeter la fiche
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

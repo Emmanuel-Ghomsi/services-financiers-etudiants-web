@@ -9,7 +9,7 @@ interface AdminStatsProps {
 export function AdminStats({ stats }: AdminStatsProps) {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Statistiques Admin</h2>
+      <h2 className="text-xl font-semibold">Statistiques Conformité</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard
           title="Fiches créées"
@@ -19,7 +19,7 @@ export function AdminStats({ stats }: AdminStatsProps) {
         <StatsCard
           title="Fiches en attente"
           value={stats.pendingAdminValidations}
-          description="En attente de validation Admin"
+          description="En attente de validation Conformité"
           icon={<ClipboardCheck className="h-4 w-4 text-muted-foreground" />}
         />
         <StatsCard

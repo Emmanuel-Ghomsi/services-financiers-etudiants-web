@@ -54,8 +54,8 @@ export function EditRolesModal({ user, isOpen, onClose, onSuccess }: EditRolesMo
 
   // Options de rôles disponibles
   const roleOptions = [
-    { value: RoleEnum.SUPER_ADMIN, label: 'Super Admin' },
-    { value: RoleEnum.ADMIN, label: 'Admin' },
+    { value: RoleEnum.SUPER_ADMIN, label: 'Contrôle Interne' },
+    { value: RoleEnum.ADMIN, label: 'Conformité' },
     { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
     { value: RoleEnum.ADVISOR, label: 'Conseiller' },
   ];

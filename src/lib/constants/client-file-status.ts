@@ -9,8 +9,8 @@ export enum ClientFileStatus {
 
 export const ClientFileStatusLabels: Record<ClientFileStatus, string> = {
   [ClientFileStatus.IN_PROGRESS]: 'En cours',
-  [ClientFileStatus.AWAITING_ADMIN_VALIDATION]: 'En attente de validation (Admin)',
-  [ClientFileStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente de validation (Super Admin)',
+  [ClientFileStatus.AWAITING_ADMIN_VALIDATION]: 'En attente de validation (Conformité)',
+  [ClientFileStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente de validation (Contrôle Interne)',
   [ClientFileStatus.REJECTED]: 'Rejetée',
   [ClientFileStatus.BEING_MODIFIED]: 'En cours de modification',
   [ClientFileStatus.VALIDATED]: 'Validée',

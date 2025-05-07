@@ -9,7 +9,7 @@ interface SuperAdminStatsProps {
 export function SuperAdminStats({ stats }: SuperAdminStatsProps) {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">Statistiques Super Admin</h2>
+      <h2 className="text-xl font-semibold">Statistiques Contrôle Interne</h2>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatsCard
           title="Utilisateurs totaux"
@@ -22,14 +22,14 @@ export function SuperAdminStats({ stats }: SuperAdminStatsProps) {
           icon={<UserCheck className="h-4 w-4 text-muted-foreground" />}
         />
         <StatsCard
-          title="Administrateurs"
+          title="Conformité"
           value={stats.totalAdmins}
           icon={<ShieldCheck className="h-4 w-4 text-muted-foreground" />}
         />
         <StatsCard
           title="Fiches en attente"
           value={stats.pendingSuperAdminValidations}
-          description="En attente de validation Super Admin"
+          description="En attente de validation Contrôle Interne"
           icon={<ClipboardCheck className="h-4 w-4 text-muted-foreground" />}
         />
         <StatsCard

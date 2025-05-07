@@ -60,8 +60,8 @@ export default function AddUserPage() {
 
   // Options de rôles disponibles
   const roleOptions: MultiSelectOption[] = [
-    { value: RoleEnum.SUPER_ADMIN, label: 'Super Administrateur' },
-    { value: RoleEnum.ADMIN, label: 'Administrateur' },
+    { value: RoleEnum.SUPER_ADMIN, label: 'Contrôle Interne' },
+    { value: RoleEnum.ADMIN, label: 'Conformité' },
     { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
     { value: RoleEnum.ADVISOR, label: 'Conseiller' },
   ];

@@ -26,9 +26,9 @@ export function UserRoleBadge({ role, className }: UserRoleBadgeProps) {
   const getRoleLabel = (role: UserRole) => {
     switch (role.toUpperCase()) {
       case 'SUPER_ADMIN':
-        return 'Super Admin';
+        return "Contrôle Interne"
       case 'ADMIN':
-        return 'Admin';
+        return "Conformité"
       case 'SUB_ADMIN':
         return 'Admin Délégué';
       case 'ADVISOR':

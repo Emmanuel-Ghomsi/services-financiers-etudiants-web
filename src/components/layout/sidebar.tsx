@@ -7,8 +7,6 @@ import { cn } from '@/lib/utils';
 import {
   Users,
   UserPlus,
-  FileText,
-  Settings,
   ChevronDown,
   ChevronRight,
   LogOut,
