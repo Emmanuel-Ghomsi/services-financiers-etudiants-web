@@ -326,9 +326,6 @@ export function useClientFiles() {
       // Faire la requête
       const response = await fetch(EXPORT_API_URL, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
         body: formData,
       });
 
@@ -417,9 +414,6 @@ export function useClientFiles() {
       // Faire la requête
       const response = await fetch(EXPORT_API_URL, {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
         body: formData,
       });
 
