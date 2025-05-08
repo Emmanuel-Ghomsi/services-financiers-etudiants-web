@@ -174,7 +174,10 @@ export function ClientFilesInfinite() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <ClientFileStatusBadge status={client.status} />
+                          <ClientFileStatusBadge
+                            reject={client.rejectionReason}
+                            status={client.status}
+                          />
                         </TableCell>
                         <TableCell>{client.creatorUsername}</TableCell>
                         <TableCell className="text-right">
