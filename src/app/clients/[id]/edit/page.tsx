@@ -419,7 +419,7 @@ export default function EditClientFilePage() {
             firstName: clientFile.firstName || '',
             email: clientFile.email || '',
             maidenName: clientFile.maidenName || '',
-            birthDate: clientFile.birthDate || undefined,
+            birthDate: clientFile.birthDate ? new Date(clientFile.birthDate) : undefined,
             birthCity: clientFile.birthCity || '',
             birthCountry: clientFile.birthCountry || '',
             identityType: clientFile.identityType || '',
@@ -453,7 +453,7 @@ export default function EditClientFilePage() {
           defaultValues={{
             profession: clientFile.profession || '',
             businessSector: clientFile.businessSector || '',
-            activityStartDate: clientFile.activityStartDate || undefined,
+            activityStartDate: clientFile.activityStartDate ? new Date(clientFile.activityStartDate) : undefined,
             activityArea: clientFile.activityArea || '',
           }}
         />
@@ -519,11 +519,11 @@ export default function EditClientFilePage() {
             isPEP: clientFile.isPEP || false,
             pepType: clientFile.pepType || '',
             pepMandate: clientFile.pepMandate || '',
-            pepEndDate: clientFile.pepEndDate || undefined,
+            pepEndDate: clientFile.pepEndDate ? new Date(clientFile.pepEndDate) : undefined,
             pepLinkType: clientFile.pepLinkType || '',
             pepLastName: clientFile.pepLastName || '',
             pepFirstName: clientFile.pepFirstName || '',
-            pepBirthDate: clientFile.pepBirthDate || undefined,
+            pepBirthDate: clientFile.pepBirthDate ? new Date(clientFile.pepBirthDate) : undefined,
             pepBirthPlace: clientFile.pepBirthPlace || '',
           }}
         />

@@ -37,7 +37,9 @@ export function ActivityForm({ onSubmit, isSubmitting = false, defaultValues }: 
     defaultValues: {
       profession: defaultValues?.profession || '',
       businessSector: defaultValues?.businessSector || '',
-      activityStartDate: defaultValues?.activityStartDate || undefined,
+      activityStartDate: defaultValues?.activityStartDate
+        ? new Date(defaultValues?.activityStartDate)
+        : undefined,
       activityArea: defaultValues?.activityArea || '',
     },
   });

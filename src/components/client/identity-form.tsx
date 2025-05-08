@@ -49,7 +49,7 @@ export function IdentityForm({ onSubmit, isSubmitting = false, defaultValues }: 
       firstName: defaultValues?.firstName || '',
       email: defaultValues?.email || '',
       maidenName: defaultValues?.maidenName || '',
-      birthDate: defaultValues?.birthDate || undefined,
+      birthDate: defaultValues?.birthDate ? new Date(defaultValues?.birthDate) : undefined,
       birthCity: defaultValues?.birthCity || '',
       birthCountry: defaultValues?.birthCountry || '',
       identityType: defaultValues?.identityType || '',

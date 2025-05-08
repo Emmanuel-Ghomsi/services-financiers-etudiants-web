@@ -43,11 +43,11 @@ export function PepForm({ onSubmit, isSubmitting = false, defaultValues }: PepFo
       isPEP: defaultValues?.isPEP ?? false,
       pepType: defaultValues?.pepType || '',
       pepMandate: defaultValues?.pepMandate || '',
-      pepEndDate: defaultValues?.pepEndDate || undefined,
+      pepEndDate: defaultValues?.pepEndDate ? new Date(defaultValues?.pepEndDate) : undefined,
       pepLinkType: defaultValues?.pepLinkType || '',
       pepLastName: defaultValues?.pepLastName || '',
       pepFirstName: defaultValues?.pepFirstName || '',
-      pepBirthDate: defaultValues?.pepBirthDate || undefined,
+      pepBirthDate: defaultValues?.pepBirthDate ? new Date(defaultValues?.pepBirthDate) : undefined,
       pepBirthPlace: defaultValues?.pepBirthPlace || '',
     },
   });
