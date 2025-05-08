@@ -47,7 +47,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
     rejectFile,
     deleteFile,
     exportFileToPDF,
-    exportFileToWord,
+    exportFileToExcel,
   } = useClientFiles();
   const { toast } = useToast();
   const router = useRouter();
@@ -200,17 +200,17 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
     }
   };
 
-  const handleExportWord = async () => {
+  const handleExportExcel = async () => {
     try {
-      await exportFileToWord(file.id);
+      await exportFileToExcel(file.id);
       toast({
         title: 'Succès',
-        description: 'Export Word en cours de téléchargement',
+        description: 'Export Excel en cours de téléchargement',
       });
     } catch (error) {
       toast({
         title: 'Erreur',
-        description: "Impossible d'exporter la fiche client en Word",
+        description: "Impossible d'exporter la fiche client en Excel",
         variant: 'destructive',
       });
     }
@@ -283,9 +283,9 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
                 <span>Exporter en PDF</span>
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={handleExportWord}>
+              <DropdownMenuItem onClick={handleExportExcel}>
                 <Download className="mr-2 h-4 w-4" />
-                <span>Exporter en Word</span>
+                <span>Exporter en Excel</span>
               </DropdownMenuItem>
             </>
           )}

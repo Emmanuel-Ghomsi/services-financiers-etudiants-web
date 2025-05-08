@@ -91,9 +91,17 @@ export function ComplianceForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Source de la classification</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Source de la classification" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Source de la classification" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Score">Score</SelectItem>
+                      <SelectItem value="Dégradation">Dégradation de scoring</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

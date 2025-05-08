@@ -19,6 +19,7 @@ import type {
 } from '@/types/client-file';
 import { apiRequest } from '@/lib/api/api-client';
 import { useEffect } from 'react';
+import { EXPORT_API_URL } from '@/config';
 
 export function useClientFile(clientFileId?: string) {
   const { data: session } = useSession();
@@ -556,6 +557,216 @@ export function useClientFile(clientFileId?: string) {
     },
   });
 
+  // Fonction pour exporter une fiche client en PDF
+  const exportFileToPDF = async (): Promise<void> => {
+    if (!session?.accessToken) {
+      toast({
+        title: 'Erreur',
+        description: 'Vous devez être authentifié pour exporter un fichier',
+        variant: 'destructive',
+      });
+      throw new Error('Non authentifié');
+    }
+
+    if (!clientFileId) {
+      toast({
+        title: 'Erreur',
+        description: 'ID de fiche client non fourni',
+        variant: 'destructive',
+      });
+      throw new Error('ID de fiche client non fourni');
+    }
+
+    try {
+      console.log(`Début de l'export PDF pour la fiche ${clientFileId}`);
+
+      // Récupérer les données de la fiche client
+      const clientFile = query.data;
+      if (!clientFile) {
+        throw new Error('Données de la fiche client non disponibles');
+      }
+
+      // Récupérer le fichier template
+      const templateResponse = await fetch('/assets/template.docx');
+      if (!templateResponse.ok) {
+        throw new Error('Impossible de charger le fichier template');
+      }
+      const templateBlob = await templateResponse.blob();
+      const templateFile = new File([templateBlob], 'template.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      // Préparer les options
+      const options = {
+        format: 'pdf',
+        template_filename: 'template.docx',
+        data: clientFile,
+      };
+
+      // Créer le FormData
+      const formData = new FormData();
+      formData.append('file', templateFile);
+      formData.append('options', JSON.stringify(options));
+
+      // Faire la requête
+      const response = await fetch(EXPORT_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+        body: formData,
+      });
+
+      console.log(`Statut de la réponse: ${response.status}`);
+
+      // Vérifier le type de contenu
+      const contentType = response.headers.get('content-type');
+      console.log(`Type de contenu: ${contentType}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erreur lors de l'export PDF: ${errorText}`);
+        throw new Error(`Erreur lors de l'export PDF: ${response.status} ${response.statusText}`);
+      }
+
+      // Récupérer le blob de la réponse
+      const blob = await response.blob();
+      console.log(`Taille du blob: ${blob.size} octets`);
+
+      // Créer une URL d'objet pour le blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Créer un lien temporaire et déclencher un téléchargement
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fiche-client-${clientFileId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Nettoyer
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: 'Succès',
+        description: 'Export PDF téléchargé avec succès',
+      });
+    } catch (error) {
+      console.error("Erreur complète lors de l'export PDF:", error);
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : "Erreur lors de l'export PDF",
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
+  // Fonction pour exporter une fiche client en Excel
+  const exportFileToExcel = async (): Promise<void> => {
+    if (!session?.accessToken) {
+      toast({
+        title: 'Erreur',
+        description: 'Vous devez être authentifié pour exporter un fichier',
+        variant: 'destructive',
+      });
+      throw new Error('Non authentifié');
+    }
+
+    if (!clientFileId) {
+      toast({
+        title: 'Erreur',
+        description: 'ID de fiche client non fourni',
+        variant: 'destructive',
+      });
+      throw new Error('ID de fiche client non fourni');
+    }
+
+    try {
+      console.log(`Début de l'export Excel pour la fiche ${clientFileId}`);
+
+      // Récupérer les données de la fiche client
+      const clientFile = query.data;
+      if (!clientFile) {
+        throw new Error('Données de la fiche client non disponibles');
+      }
+
+      // Récupérer le fichier template
+      const templateResponse = await fetch('/assets/template.docx');
+      if (!templateResponse.ok) {
+        throw new Error('Impossible de charger le fichier template');
+      }
+      const templateBlob = await templateResponse.blob();
+      const templateFile = new File([templateBlob], 'template.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      // Préparer les options
+      const options = {
+        format: 'xlsx',
+        template_filename: 'template.docx',
+        data: clientFile,
+      };
+
+      // Créer le FormData
+      const formData = new FormData();
+      formData.append('file', templateFile);
+      formData.append('options', JSON.stringify(options));
+
+      // Faire la requête
+      const response = await fetch(EXPORT_API_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+        body: formData,
+      });
+
+      console.log(`Statut de la réponse: ${response.status}`);
+
+      // Vérifier le type de contenu
+      const contentType = response.headers.get('content-type');
+      console.log(`Type de contenu: ${contentType}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Erreur lors de l'export Excel: ${errorText}`);
+        throw new Error(`Erreur lors de l'export Excel: ${response.status} ${response.statusText}`);
+      }
+
+      // Récupérer le blob de la réponse
+      const blob = await response.blob();
+      console.log(`Taille du blob: ${blob.size} octets`);
+
+      // Créer une URL d'objet pour le blob
+      const url = window.URL.createObjectURL(blob);
+
+      // Créer un lien temporaire et déclencher un téléchargement
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fiche-client-${clientFileId}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+
+      // Nettoyer
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: 'Succès',
+        description: 'Export Excel téléchargé avec succès',
+      });
+    } catch (error) {
+      console.error("Erreur complète lors de l'export Excel:", error);
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : "Erreur lors de l'export Excel",
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   // Fonction pour mettre à jour une fiche client
   const updateClientFile = async (id: string, data: any): Promise<ClientFileDTO | null> => {
     try {
@@ -681,5 +892,7 @@ export function useClientFile(clientFileId?: string) {
     isValidatingAsSuperAdmin: validateAsSuperAdminMutation.isPending,
     rejectFile,
     isRejecting: rejectFileMutation.isPending,
+    exportFileToPDF,
+    exportFileToExcel,
   };
 }

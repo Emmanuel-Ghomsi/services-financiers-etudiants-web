@@ -9,6 +9,7 @@ import { apiRequest } from '@/lib/api/api-client';
 import { ClientFileStatus } from '@/lib/constants/client-file-status';
 import { useProfile } from '@/lib/api/hooks/use-profile';
 import { useEffect, useRef } from 'react';
+import { EXPORT_API_URL } from '@/config';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_PATH_URL;
 
@@ -297,11 +298,38 @@ export function useClientFiles() {
     try {
       console.log(`Début de l'export PDF pour la fiche client ${id}`);
 
-      // Faire une requête fetch avec le token d'authentification
-      const response = await fetch(`${API_BASE_URL}/client-files/${id}/export/pdf`, {
+      // Récupérer d'abord les données de la fiche client
+      const clientFile = await apiRequest<ClientFileDTO>(`/client-files/${id}`);
+
+      // Récupérer le fichier template
+      const templateResponse = await fetch('/assets/template.docx');
+      if (!templateResponse.ok) {
+        throw new Error('Impossible de charger le fichier template');
+      }
+      const templateBlob = await templateResponse.blob();
+      const templateFile = new File([templateBlob], 'template.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      // Préparer les options
+      const options = {
+        format: 'pdf',
+        template_filename: 'template.docx',
+        data: clientFile,
+      };
+
+      // Créer le FormData
+      const formData = new FormData();
+      formData.append('file', templateFile);
+      formData.append('options', JSON.stringify(options));
+
+      // Faire la requête
+      const response = await fetch(EXPORT_API_URL, {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
         },
+        body: formData,
       });
 
       console.log(
@@ -316,12 +344,6 @@ export function useClientFiles() {
           .catch(() => "Impossible de lire le message d'erreur");
         console.error(`Erreur HTTP ${response.status}: ${errorText}`);
         throw new Error(`Erreur lors de l'export PDF: ${response.status} ${response.statusText}`);
-      }
-
-      // Vérifier le type de contenu
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/pdf')) {
-        console.warn(`Type de contenu inattendu: ${contentType}`);
       }
 
       // Récupérer le blob de la réponse
@@ -358,20 +380,47 @@ export function useClientFiles() {
     }
   };
 
-  // Fonction pour exporter une fiche client en Word
-  const exportFileToWord = async (id: string) => {
+  // Fonction pour exporter une fiche client en Excel
+  const exportFileToExcel = async (id: string) => {
     if (!session?.accessToken) {
       throw new Error('Non authentifié');
     }
 
     try {
-      console.log(`Début de l'export Word pour la fiche client ${id}`);
+      console.log(`Début de l'export Excel pour la fiche client ${id}`);
 
-      // Faire une requête fetch avec le token d'authentification
-      const response = await fetch(`${API_BASE_URL}/client-files/${id}/export/word`, {
+      // Récupérer d'abord les données de la fiche client
+      const clientFile = await apiRequest<ClientFileDTO>(`/client-files/${id}`);
+
+      // Récupérer le fichier template
+      const templateResponse = await fetch('/assets/template.docx');
+      if (!templateResponse.ok) {
+        throw new Error('Impossible de charger le fichier template');
+      }
+      const templateBlob = await templateResponse.blob();
+      const templateFile = new File([templateBlob], 'template.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      });
+
+      // Préparer les options
+      const options = {
+        format: 'xlsx',
+        template_filename: 'template.docx',
+        data: clientFile,
+      };
+
+      // Créer le FormData
+      const formData = new FormData();
+      formData.append('file', templateFile);
+      formData.append('options', JSON.stringify(options));
+
+      // Faire la requête
+      const response = await fetch(EXPORT_API_URL, {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
         },
+        body: formData,
       });
 
       console.log(
@@ -385,18 +434,7 @@ export function useClientFiles() {
           .text()
           .catch(() => "Impossible de lire le message d'erreur");
         console.error(`Erreur HTTP ${response.status}: ${errorText}`);
-        throw new Error(`Erreur lors de l'export Word: ${response.status} ${response.statusText}`);
-      }
-
-      // Vérifier le type de contenu
-      const contentType = response.headers.get('content-type');
-      if (
-        !contentType ||
-        !contentType.includes(
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
-      ) {
-        console.warn(`Type de contenu inattendu: ${contentType}`);
+        throw new Error(`Erreur lors de l'export Excel: ${response.status} ${response.statusText}`);
       }
 
       // Récupérer le blob de la réponse
@@ -409,7 +447,7 @@ export function useClientFiles() {
       // Créer un lien temporaire et déclencher un téléchargement
       const a = document.createElement('a');
       a.href = url;
-      a.download = `fiche-client-${id}.docx`;
+      a.download = `fiche-client-${id}.xlsx`;
       document.body.appendChild(a);
       a.click();
       console.log('Téléchargement déclenché');
@@ -420,13 +458,13 @@ export function useClientFiles() {
 
       toast({
         title: 'Succès',
-        description: 'Export Word téléchargé avec succès',
+        description: 'Export Excel téléchargé avec succès',
       });
     } catch (error) {
-      console.error("Erreur complète lors de l'export Word:", error);
+      console.error("Erreur complète lors de l'export Excel:", error);
       toast({
         title: 'Erreur',
-        description: error instanceof Error ? error.message : "Erreur lors de l'export Word",
+        description: error instanceof Error ? error.message : "Erreur lors de l'export Excel",
         variant: 'destructive',
       });
       throw error;
@@ -494,7 +532,7 @@ export function useClientFiles() {
     rejectFile,
     deleteFile,
     exportFileToPDF,
-    exportFileToWord,
+    exportFileToExcel,
     isCreating: createClientFileMutation.isPending,
     isUpdating: updateClientFileMutation.isPending,
   };

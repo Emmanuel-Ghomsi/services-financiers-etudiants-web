@@ -31,6 +31,7 @@ jobs:
           if [ "${BRANCH}" = "main" ]; then
             PROJECT_DIR="services-financiers-etudiants-web"
             ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_PATH_URL }}
+            NEXT_PUBLIC_API_DOC_URL=${{ secrets.NEXT_PUBLIC_API_DOC_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
             NODE_ENV=production
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
@@ -39,6 +40,7 @@ jobs:
           elif [ "${BRANCH}" = "uat" ]; then
             PROJECT_DIR="services-financiers-etudiants-web-uat"
             ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}
+            NEXT_PUBLIC_API_DOC_URL=${{ secrets.NEXT_PUBLIC_API_DOC_URL }}
             NEXTAUTH_URL=${{ secrets.NEXTAUTH_UAT_URL }}
             NODE_ENV=test
             NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"

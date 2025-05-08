@@ -1,36 +1,56 @@
-"use client"
+'use client';
 
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Card, CardContent } from "@/components/ui/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { LoadingButton } from "@/components/ui/loading-button"
-import { ClientFileSituationRequestSchema, type ClientFileSituationRequest } from "@/types/client-file"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { LoadingButton } from '@/components/ui/loading-button';
+import {
+  ClientFileSituationRequestSchema,
+  type ClientFileSituationRequest,
+} from '@/types/client-file';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface SituationFormProps {
-  onSubmit: (data: ClientFileSituationRequest) => Promise<void>
-  isSubmitting?: boolean
-  defaultValues?: Partial<ClientFileSituationRequest>
+  onSubmit: (data: ClientFileSituationRequest) => Promise<void>;
+  isSubmitting?: boolean;
+  defaultValues?: Partial<ClientFileSituationRequest>;
 }
 
-export function SituationForm({ onSubmit, isSubmitting = false, defaultValues }: SituationFormProps) {
+export function SituationForm({
+  onSubmit,
+  isSubmitting = false,
+  defaultValues,
+}: SituationFormProps) {
   const form = useForm<ClientFileSituationRequest>({
     resolver: zodResolver(ClientFileSituationRequestSchema),
     defaultValues: {
-      incomeSources: defaultValues?.incomeSources || "",
+      incomeSources: defaultValues?.incomeSources || '',
       monthlyIncome: defaultValues?.monthlyIncome || undefined,
-      incomeCurrency: defaultValues?.incomeCurrency || "EUR",
-      fundsOriginDestination: defaultValues?.fundsOriginDestination || "",
-      assets: defaultValues?.assets || "",
+      incomeCurrency: defaultValues?.incomeCurrency || 'EUR',
+      fundsOriginDestination: defaultValues?.fundsOriginDestination || '',
+      assets: defaultValues?.assets || '',
     },
-  })
+  });
 
   const handleSubmit = async (data: ClientFileSituationRequest) => {
-    await onSubmit(data)
-  }
+    await onSubmit(data);
+  };
 
   return (
     <Card className="w-full shadow-sm">
@@ -44,7 +64,19 @@ export function SituationForm({ onSubmit, isSubmitting = false, defaultValues }:
                 <FormItem>
                   <FormLabel>Sources de revenus</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Sources de revenus" {...field} className="min-h-[100px]" />
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner une source de revenus" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Salaire">Salaire</SelectItem>
+                        <SelectItem value="Pension">Pension</SelectItem>
+                        <SelectItem value="Retraite">Retraite</SelectItem>
+                        <SelectItem value="Autre">Autre</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,7 +136,11 @@ export function SituationForm({ onSubmit, isSubmitting = false, defaultValues }:
                 <FormItem>
                   <FormLabel>Origine et destination des fonds</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Origine et destination des fonds" {...field} className="min-h-[100px]" />
+                    <Textarea
+                      placeholder="Origine et destination des fonds"
+                      {...field}
+                      className="min-h-[100px]"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -118,7 +154,11 @@ export function SituationForm({ onSubmit, isSubmitting = false, defaultValues }:
                 <FormItem>
                   <FormLabel>Patrimoine</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Description du patrimoine" {...field} className="min-h-[100px]" />
+                    <Textarea
+                      placeholder="Description du patrimoine"
+                      {...field}
+                      className="min-h-[100px]"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -139,5 +179,5 @@ export function SituationForm({ onSubmit, isSubmitting = false, defaultValues }:
         </Form>
       </CardContent>
     </Card>
-  )
+  );
 }
