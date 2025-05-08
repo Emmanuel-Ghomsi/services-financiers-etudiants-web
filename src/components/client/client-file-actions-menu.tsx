@@ -306,6 +306,14 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
         onReject={handleReject}
       />
 
+      {/* Dialogue d'envoi par email */}
+      <SendPdfEmailDialog
+        open={sendEmailDialogOpen}
+        onOpenChange={setSendEmailDialogOpen}
+        clientFileId={file.id}
+        clientEmail={file.email}
+      />
+
       {/* Dialogue de confirmation de validation */}
       <Dialog open={confirmValidateDialogOpen} onOpenChange={setConfirmValidateDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
