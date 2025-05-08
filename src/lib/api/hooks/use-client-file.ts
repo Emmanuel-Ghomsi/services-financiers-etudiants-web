@@ -609,11 +609,8 @@ export function useClientFile(clientFileId?: string) {
       formData.append('options', JSON.stringify(options));
 
       // Faire la requête
-      const response = await fetch(EXPORT_API_URL, {
+      const response = await fetch("/api/document-export", {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
         body: formData,
       });
 
@@ -714,11 +711,8 @@ export function useClientFile(clientFileId?: string) {
       formData.append('options', JSON.stringify(options));
 
       // Faire la requête
-      const response = await fetch(EXPORT_API_URL, {
+      const response = await fetch("/api/document-export", {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${session.accessToken}`,
-        },
         body: formData,
       });
 

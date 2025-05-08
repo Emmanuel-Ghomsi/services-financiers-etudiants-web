@@ -324,7 +324,7 @@ export function useClientFiles() {
       formData.append('options', JSON.stringify(options));
 
       // Faire la requête
-      const response = await fetch(EXPORT_API_URL, {
+      const response = await fetch('/api/document-export', {
         method: 'POST',
         body: formData,
       });
@@ -412,7 +412,7 @@ export function useClientFiles() {
       formData.append('options', JSON.stringify(options));
 
       // Faire la requête
-      const response = await fetch(EXPORT_API_URL, {
+      const response = await fetch('/api/document-export', {
         method: 'POST',
         body: formData,
       });
