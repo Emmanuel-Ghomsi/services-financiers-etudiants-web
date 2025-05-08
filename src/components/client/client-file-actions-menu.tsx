@@ -200,7 +200,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
     }
   };
 
-  const handleExportExcel = async () => {
+  /*const handleExportExcel = async () => {
     try {
       await exportFileToExcel(file.id);
       toast({
@@ -214,7 +214,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
         variant: 'destructive',
       });
     }
-  };
+  };*/
 
   const handleConfirmValidation = () => {
     if (validationType === 'admin') {
@@ -283,10 +283,10 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
                 <span>Exporter en PDF</span>
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={handleExportExcel}>
+              {/*<DropdownMenuItem onClick={handleExportExcel}>
                 <Download className="mr-2 h-4 w-4" />
                 <span>Exporter en Excel</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </>
           )}
         </DropdownMenuContent>
