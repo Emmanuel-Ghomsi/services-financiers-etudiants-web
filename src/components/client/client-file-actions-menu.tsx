@@ -17,6 +17,7 @@ import {
   CheckCircle,
   XCircle,
   FileText,
+  Mail,
   Download,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -32,6 +33,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { RejectFileDialog } from './reject-file-dialog';
+import { SendPdfEmailDialog } from './send-pdf-email-dialog';
 
 interface ClientFileActionsMenuProps {
   file: ClientFileDTO;
@@ -53,6 +55,7 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
   const router = useRouter();
 
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [sendEmailDialogOpen, setSendEmailDialogOpen] = useState(false);
   const [confirmValidateDialogOpen, setConfirmValidateDialogOpen] = useState(false);
   const [validationType, setValidationType] = useState<'admin' | 'superadmin' | null>(null);
   const [incompleteFileDialogOpen, setIncompleteFileDialogOpen] = useState(false);
@@ -287,6 +290,11 @@ export function ClientFileActionsMenu({ file, onActionComplete }: ClientFileActi
                 <Download className="mr-2 h-4 w-4" />
                 <span>Exporter en Excel</span>
               </DropdownMenuItem> */}
+
+              <DropdownMenuItem onClick={() => setSendEmailDialogOpen(true)}>
+                <Mail className="mr-2 h-4 w-4" />
+                <span>Envoyer par email</span>
+              </DropdownMenuItem>
             </>
           )}
         </DropdownMenuContent>

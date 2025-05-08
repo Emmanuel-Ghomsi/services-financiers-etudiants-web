@@ -93,7 +93,28 @@ export function useClientFilePermissions() {
   };
 
   const canExportFile = (file: ClientFileDTO) => {
-    return file.status === ClientFileStatus.VALIDATED;
+    const userId = profile?.id;
+    const userRole = profile?.roles?.[0]?.toUpperCase() || '';
+
+    // Tous les utilisateurs peuvent exporter/envoyer par email une fiche validée
+    if (file.validationDateSuper && file.status === ClientFileStatus.VALIDATED) {
+      return true;
+    }
+
+    // Les admins et super-admins peuvent exporter/envoyer par email n'importe quelle fiche
+    if (
+      (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') &&
+      file.status === ClientFileStatus.VALIDATED
+    ) {
+      return true;
+    }
+
+    // L'auteur peut exporter/envoyer par email sa propre fiche
+    if (file.creatorId === userId && file.status === ClientFileStatus.VALIDATED) {
+      return true;
+    }
+
+    return false;
   };
 
   return {
