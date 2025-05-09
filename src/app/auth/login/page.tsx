@@ -1,105 +1,250 @@
 'use client';
 
-import type React from 'react';
-import { useState } from 'react';
-import { Logo } from '@/components/layout/logo';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession, signIn, signOut } from 'next-auth/react';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { LoadingButton } from '@/components/ui/loading-button';
+import { toast } from 'sonner';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
+
+// Schéma de validation pour le formulaire
+const formSchema = z.object({
+  username: z.string().min(1, "Le nom d'utilisateur est requis"),
+  password: z.string().min(1, 'Le mot de passe est requis'),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading } = useAuth();
-  const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+  const error = searchParams.get('error');
+  const { data: session, status } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Gérer les erreurs d'authentification
+  useEffect(() => {
+    // Si l'erreur est liée à un token expiré, déconnecter l'utilisateur
+    if (error === 'RefreshTokenExpired' || error === 'RefreshAccessTokenError') {
+      const handleExpiredToken = async () => {
+        // Déconnecter l'utilisateur
+        await signOut({ redirect: false });
 
-    if (!username || !password) {
-      toast('Veuillez remplir tous les champs', 'warning');
-      return;
+        // Afficher un message d'erreur
+        toast.error('Votre session a expiré. Veuillez vous reconnecter.');
+      };
+
+      handleExpiredToken();
+    } else if (error) {
+      // Gérer les autres erreurs
+      let errorMessage = "Une erreur s'est produite lors de l'authentification.";
+
+      switch (error) {
+        case 'CredentialsSignin':
+          errorMessage =
+            "Identifiants incorrects. Veuillez vérifier votre nom d'utilisateur et votre mot de passe.";
+          break;
+        case 'SessionRequired':
+          errorMessage = 'Vous devez être connecté pour accéder à cette page.';
+          break;
+        default:
+          errorMessage = `Erreur: ${error}`;
+      }
+
+      toast.error(errorMessage);
     }
+  }, [error]);
 
-    const success = await login(username, password);
-    if (success) {
-      router.push('/dashboard');
+  // Rediriger vers le tableau de bord si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (status === 'authenticated' && !error) {
+      router.push(callbackUrl);
+    }
+  }, [status, router, callbackUrl, error]);
+
+  // Initialiser le formulaire
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
+
+  // Gérer la soumission du formulaire
+  const onSubmit = async (values: FormValues) => {
+    setIsLoading(true);
+    try {
+      const result = await signIn('credentials', {
+        username: values.username,
+        password: values.password,
+        redirect: false,
+        callbackUrl,
+      });
+
+      if (result?.error) {
+        // Gérer l'erreur localement au lieu de rediriger
+        let errorMessage = 'Identifiants incorrects. Veuillez réessayer.';
+
+        switch (result.error) {
+          case 'CredentialsSignin':
+            errorMessage =
+              "Identifiants incorrects. Veuillez vérifier votre nom d'utilisateur et votre mot de passe.";
+            break;
+          default:
+            errorMessage = `Erreur: ${result.error}`;
+        }
+
+        toast.error(errorMessage);
+      } else if (result?.url) {
+        // Redirection manuelle vers l'URL de callback
+        router.push(result.url);
+      } else {
+        // Fallback à la redirection par défaut
+        router.push(callbackUrl);
+      }
+    } catch (error) {
+      toast.error('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="flex flex-col items-center mb-10">
-        <Logo />
+  // Si le statut est "loading", afficher un indicateur de chargement
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
+        <div className="text-center">
+          <Image
+            src="/images/logo.png"
+            alt="Services Financiers Étudiants"
+            width={150}
+            height={80}
+            className="mx-auto mb-6"
+          />
+          <Loader2 className="h-12 w-12 animate-spin text-brand-blue mx-auto mb-4" />
+          <p className="text-gray-700">Chargement...</p>
+        </div>
       </div>
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="username">Nom d'utilisateur ou Adresse Mail</Label>
-              <Input
-                id="username"
-                type="username"
-                placeholder="john.doe ou john@example.com"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pr-10"
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 flex items-center pr-3"
-                  onClick={() => setShowPassword(!showPassword)}
-                  disabled={isLoading}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <Eye className="h-5 w-5 text-gray-400" />
+    );
+  }
+
+  // Si l'utilisateur n'est pas connecté, afficher le formulaire de connexion
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
+      <div className="w-full max-w-md px-4">
+        <div className="text-center mb-8">
+          <Image
+            src="/images/logo.png"
+            alt="Services Financiers Étudiants"
+            width={150}
+            height={80}
+            className="mx-auto mb-4"
+          />
+          <h1 className="text-2xl font-bold text-brand-blue">Services Financiers Étudiants</h1>
+          <p className="text-gray-700 mt-2">Connectez-vous à votre compte</p>
+        </div>
+
+        <Card className="bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle>Connexion</CardTitle>
+            <CardDescription>Entrez vos identifiants pour accéder à votre compte.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom d'utilisateur</FormLabel>
+                      <FormControl>
+                        <Input placeholder="john.doe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-              </div>
-              <div className="flex justify-end">
-                <Link href="/auth/forgot-password" className="text-sm text-brand-blue hover:underline">
-                  Mot de passe oublié ?
-                </Link>
-              </div>
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-brand-blue hover:bg-brand-blue/90"
-              disabled={isLoading}
-            >
-              {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : 'Connexion'}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mot de passe</FormLabel>
+                      <div className="relative">
+                        <FormControl>
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••"
+                            {...field}
+                          />
+                        </FormControl>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                          </span>
+                        </Button>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <LoadingButton
+                  type="submit"
+                  className="w-full bg-brand-blue hover:bg-brand-blue/90"
+                  isLoading={isLoading}
+                  loadingText="Connexion en cours..."
+                >
+                  Se connecter
+                </LoadingButton>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <Button variant="link" className="text-sm" asChild>
+              <a href="/auth/forgot-password">Mot de passe oublié ?</a>
             </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

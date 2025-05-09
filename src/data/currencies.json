@@ -1,0 +1,17 @@
+[
+  { "value": "USD", "label": "Dollar américain" },
+  { "value": "EUR", "label": "Euro" },
+  { "value": "XAF", "label": "Franc CFA (BEAC)" },
+  { "value": "XOF", "label": "Franc CFA (BCEAO)" },
+  { "value": "GBP", "label": "Livre sterling" },
+  { "value": "JPY", "label": "Yen japonais" },
+  { "value": "CAD", "label": "Dollar canadien" },
+  { "value": "CNY", "label": "Yuan chinois" },
+  { "value": "CHF", "label": "Franc suisse" },
+  { "value": "INR", "label": "Roupie indienne" },
+  { "value": "BRL", "label": "Réel brésilien" },
+  { "value": "ZAR", "label": "Rand sud-africain" },
+  { "value": "RUB", "label": "Rouble russe" },
+  { "value": "AED", "label": "Dirham des Émirats" },
+  { "value": "AUD", "label": "Dollar australien" }
+]

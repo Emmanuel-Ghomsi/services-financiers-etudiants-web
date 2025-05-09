@@ -1,0 +1,21 @@
+services:
+  sfe_web_uat:
+    container_name: sfe_web_uat
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.uat
+    restart: always
+    env_file:
+      - .env.test
+    environment:
+      - NODE_ENV=test
+    ports:
+      - "2028:3000"
+    volumes:
+      - /var/www/sfe/static_uat:/mnt/static
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true

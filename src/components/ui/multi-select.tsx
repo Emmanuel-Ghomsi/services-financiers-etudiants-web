@@ -51,7 +51,7 @@ const MultiValue = (props: MultiValueProps<MultiSelectOption, true>) => {
         }}
       >
         <X className="h-3 w-3" aria-hidden="true" />
-        <span className="sr-only">Retirer {props.data.label}</span>
+        <span className="sr-only">Remove {props.data.label}</span>
       </button>
     </Badge>
   );
@@ -76,14 +76,14 @@ export function MultiSelect({
       classNames={{
         control: ({ isFocused }) =>
           cn(
-            'border-input px-3 py-2 bg-transparent rounded-md',
+            'border-input px-3 py-2 bg-white rounded-md',
             isFocused ? 'border-primary ring-2 ring-primary/20' : '',
             className
           ),
         placeholder: () => 'text-muted-foreground',
         input: () => 'text-foreground',
         valueContainer: () => 'gap-1',
-        menu: () => 'bg-popover border border-border rounded-md mt-1 overflow-hidden',
+        menu: () => 'bg-white border border-border rounded-md mt-1 overflow-hidden shadow-md',
         option: ({ isFocused, isSelected }) =>
           cn(
             'px-3 py-2 cursor-pointer',

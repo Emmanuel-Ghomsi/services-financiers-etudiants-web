@@ -1,0 +1,68 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+      - uat
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🔄 Checkout du code
+        uses: actions/checkout@v4
+
+      - name: 🔐 Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: 📡 Ajout de l’hôte VPS à known_hosts
+        run: ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Déploiement distant via SSH
+        env:
+          BRANCH: ${{ github.ref_name }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          if [ "${BRANCH}" = "main" ]; then
+            PROJECT_DIR="services-financiers-etudiants-web"
+            ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_PATH_URL }}
+            NEXT_PUBLIC_API_DOC_URL=${{ secrets.NEXT_PUBLIC_API_DOC_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NODE_ENV=production
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
+            COMPOSE_FILE="docker-compose.yml"
+            ENV_FILE=".env.production"
+          elif [ "${BRANCH}" = "uat" ]; then
+            PROJECT_DIR="services-financiers-etudiants-web-uat"
+            ENV_CONTENT="NEXT_PUBLIC_API_PATH_URL=${{ secrets.NEXT_PUBLIC_API_UAT_PATH_URL }}
+            NEXT_PUBLIC_API_DOC_URL=${{ secrets.NEXT_PUBLIC_API_DOC_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_UAT_URL }}
+            NODE_ENV=test
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}"
+            COMPOSE_FILE="docker-compose.uat.yml"
+            ENV_FILE=".env.test"
+          else
+            echo "❌ Branche ${BRANCH} non prévue pour le déploiement"
+            exit 1
+          fi
+
+          echo "🚀 Déploiement sur dossier: $PROJECT_DIR"
+
+          ssh $VPS_USER@$VPS_HOST << EOF
+            set -e
+            cd $PROJECT_DIR
+
+            echo "🧪 Écriture dynamique du fichier .env"
+            echo "$ENV_CONTENT" > $ENV_FILE
+
+            echo "📥 Pull du dernier code"
+            git pull origin $BRANCH
+
+            echo "🐳 Déploiement avec Docker Compose"
+            docker-compose --env-file $ENV_FILE -f $COMPOSE_FILE up -d --build
+          EOF

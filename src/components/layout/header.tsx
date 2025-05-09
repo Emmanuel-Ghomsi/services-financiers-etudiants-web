@@ -25,7 +25,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <ModeToggle />
           <Button variant="outline" size="sm" asChild>
-            <Link href="/login">Connexion</Link>
+            <Link href="/auth/login">Connexion</Link>
           </Button>
         </div>
       </div>

@@ -4,7 +4,6 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import type {
-  UpdateUserRequest,
   AddRoleRequest,
   ChangeUserStatusRequest,
   ResendFirstLoginEmailRequest,
@@ -18,7 +17,7 @@ export function useUpdateUser() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ userId, data }: { userId: string; data: UpdateUserRequest }) => {
+    mutationFn: async ({ userId, data }: { userId: string; data: any }) => {
       if (!session?.accessToken) {
         throw new Error('Non authentifié');
       }

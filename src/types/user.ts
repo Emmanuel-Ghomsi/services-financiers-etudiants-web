@@ -2,6 +2,7 @@ export interface UserDTO {
   id: string;
   username: string;
   email: string;
+  emailVerified: boolean;
   firstName?: string;
   lastName?: string;
   phone?: string;

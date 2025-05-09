@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
   if (!token) {
     // Rediriger vers la page d'erreur si aucun token n'est fourni
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-blue">
+      <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
         <Card className="w-full max-w-md">
           <CardContent className="p-6">
             <div className="text-center">
@@ -64,7 +64,7 @@ export default function ResetPasswordPage() {
               </p>
               <Button
                 className="mt-4 bg-brand-blue hover:bg-brand-blue/90"
-                onClick={() => router.push('/forgot-password')}
+                onClick={() => router.push('/auth/forgot-password')}
               >
                 Demander un nouveau lien
               </Button>

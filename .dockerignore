@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.vscode
+__tests__
+coverage
+Dockerfile
+docker-compose*

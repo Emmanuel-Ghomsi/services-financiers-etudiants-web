@@ -1,12 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useClientFiles } from '@/lib/api/hooks/use-client-files';
-import { useClientFilesStore } from '@/lib/stores/client-files-store';
-import { ClientStatusBadge } from './client-status-badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -15,142 +11,209 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Filter, ChevronDown } from 'lucide-react';
-import { formatDate } from '@/lib/utils/format';
-import type { ClientFileDTO } from '@/types/client-file';
+import { Button } from '@/components/ui/button';
+import { FileText, Loader2, Eye } from 'lucide-react';
+import Link from 'next/link';
+import { useInView } from 'react-intersection-observer';
+import { useClientFilePermissions } from '@/hooks/use-client-file-permissions';
+import { ClientFileStatus } from '@/lib/constants/client-file-status';
+import { ClientFileStatusBadge } from './client-file-status-badge';
+import { ClientFileActionsMenu } from './client-file-actions-menu';
 
 export function ClientFilesInfinite() {
-  const { setFilters, filters } = useClientFilesStore();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { clientFiles, isLoading, error, refetch } = useClientFiles();
+  const [displayedFiles, setDisplayedFiles] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const pageSize = 5; // Nombre d'éléments à charger à chaque fois
+  const permissions = useClientFilePermissions();
 
-  const {
-    infiniteData,
-    infiniteIsLoading,
-    infiniteError,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useClientFiles({
-    filters,
+  const { ref, inView } = useInView({
+    threshold: 0,
   });
 
-  const handleSearch = () => {
-    setFilters({
-      lastName: searchTerm,
-      email: searchTerm,
-      reference: searchTerm,
-      clientCode: searchTerm,
-    });
+  // Fonction pour calculer la progression d'une fiche client
+  const calculateCompletion = (clientFile: any) => {
+    // Cette logique devra être adaptée selon votre modèle de données
+    let completedSteps = 0;
+    const totalSteps = 9; // Nombre total d'étapes
+
+    // Vérifier chaque étape
+    if (clientFile.reference && clientFile.clientCode) completedSteps++;
+    if (clientFile.lastName && clientFile.firstName) completedSteps++;
+    if (clientFile.homeAddress) completedSteps++;
+    if (clientFile.profession) completedSteps++;
+    if (clientFile.incomeSources) completedSteps++;
+    if (clientFile.hasInternationalOps !== null) completedSteps++;
+    if (clientFile.offeredAccounts) completedSteps++;
+    if (clientFile.isPEP !== null) completedSteps++;
+    if (clientFile.riskLevel) completedSteps++;
+
+    return Math.round((completedSteps / totalSteps) * 100);
   };
 
-  // Aplatir les données paginées
-  const clientFiles = infiniteData?.pages.flatMap((page) => page.items) || [];
+  // Vérifier si une fiche est en attente de validation
+  const isAwaitingValidation = (status: string) => {
+    return (
+      status === ClientFileStatus.AWAITING_ADMIN_VALIDATION ||
+      status === ClientFileStatus.AWAITING_SUPERADMIN_VALIDATION
+    );
+  };
+
+  // Charger plus de fiches clients lorsque l'utilisateur atteint le bas de la liste
+  useEffect(() => {
+    if (inView && hasMore && !isLoading) {
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const newItems = Array.isArray(clientFiles) ? clientFiles.slice(startIndex, endIndex) : [];
+
+      if (newItems.length > 0) {
+        setDisplayedFiles((prev) => [...prev, ...newItems]);
+        setPage((prev) => prev + 1);
+      }
+
+      if (endIndex >= (Array.isArray(clientFiles) ? clientFiles.length : 0)) {
+        setHasMore(false);
+      }
+    }
+  }, [inView, hasMore, isLoading, clientFiles, page, pageSize]);
+
+  // Réinitialiser l'état lorsque les fiches clients changent
+  useEffect(() => {
+    if (Array.isArray(clientFiles) && !isLoading) {
+      setDisplayedFiles(clientFiles.slice(0, pageSize));
+      setPage(2);
+      setHasMore(clientFiles.length > pageSize);
+    }
+  }, [clientFiles, isLoading, pageSize]);
+
+  if (isLoading && displayedFiles.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-blue" />
+          <span className="ml-2">Chargement des fiches clients...</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center text-red-500">
+            Une erreur est survenue lors du chargement des fiches clients.
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <CardHeader className="pb-2">
-        <CardTitle>Fiches Clients (Chargement Infini)</CardTitle>
+      <CardHeader>
+        <CardTitle>Liste des fiches clients</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-          <div className="relative w-full md:w-auto flex-1 max-w-md">
-            <Input
-              placeholder="Rechercher par nom, email, référence..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="pl-10"
-            />
-            <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
-            <Button
-              onClick={handleSearch}
-              className="absolute inset-y-0 right-0 bg-brand-blue hover:bg-brand-blue/90"
-              size="sm"
-            >
-              Rechercher
-            </Button>
+        {clientFiles.length === 0 ? (
+          <div className="text-center py-8">
+            <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium">Aucune fiche client</h3>
+            <p className="text-muted-foreground mb-4">
+              Commencez par créer une nouvelle fiche client
+            </p>
+            {permissions.canCreateFile() && (
+              <Button asChild>
+                <Link href="/clients/new">Créer une fiche client</Link>
+              </Button>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-1">
-              <Filter className="h-4 w-4" />
-              Filtres avancés
-            </Button>
-          </div>
-        </div>
-
-        {infiniteIsLoading && !infiniteData ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-blue"></div>
-          </div>
-        ) : infiniteError ? (
-          <div className="text-center text-red-500 py-8">
-            Une erreur est survenue lors du chargement des fiches clients.
-          </div>
-        ) : clientFiles.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">Aucune fiche client trouvée.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Référence</TableHead>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Date de création</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clientFiles.map((client: ClientFileDTO) => (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.reference}</TableCell>
-                    <TableCell>
-                      {client.lastName} {client.firstName}
-                    </TableCell>
-                    <TableCell>{client.email || '-'}</TableCell>
-                    <TableCell>{client.clientType}</TableCell>
-                    <TableCell>
-                      <ClientStatusBadge status={client.status} />
-                    </TableCell>
-                    <TableCell>{formatDate(client.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                        className="text-brand-blue hover:text-brand-blue/80"
-                      >
-                        <Link href={`/clients/${client.id}`}>Voir</Link>
-                      </Button>
-                    </TableCell>
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Référence</TableHead>
+                    <TableHead>Code client</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Motif</TableHead>
+                    <TableHead>Progression</TableHead>
+                    <TableHead>Statut</TableHead>
+                    <TableHead>Opérateur</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+                </TableHeader>
+                <TableBody>
+                  {displayedFiles.map((client) => {
+                    const completion = calculateCompletion(client);
 
-        {hasNextPage && (
-          <div className="flex justify-center mt-6">
-            <Button
-              onClick={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-              variant="outline"
-              className="flex items-center gap-2"
-            >
-              {isFetchingNextPage ? (
-                <div className="animate-spin h-4 w-4 border-2 border-brand-blue border-t-transparent rounded-full"></div>
-              ) : (
-                <ChevronDown className="h-4 w-4" />
-              )}
-              {isFetchingNextPage ? 'Chargement...' : 'Charger plus'}
-            </Button>
-          </div>
+                    return (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium">
+                          <Link
+                            href={`/clients/${client.id}/view`}
+                            className="text-brand-blue hover:underline"
+                          >
+                            {client.reference}
+                          </Link>
+                        </TableCell>
+                        <TableCell>{client.clientCode}</TableCell>
+                        <TableCell>{client.clientType}</TableCell>
+                        <TableCell>{client.reason}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div
+                                className="bg-brand-blue h-2.5 rounded-full"
+                                style={{ width: `${completion}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-500">{completion}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <ClientFileStatusBadge
+                            reject={client.rejectionReason}
+                            status={client.status}
+                          />
+                        </TableCell>
+                        <TableCell>{client.creatorUsername}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end items-center gap-2">
+                            {permissions.canEditFile(client) ? (
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/clients/${client.id}/edit`}>
+                                  <FileText className="h-4 w-4 mr-1" />
+                                  Continuer
+                                </Link>
+                              </Button>
+                            ) : isAwaitingValidation(client.status) ? (
+                              <Button variant="ghost" size="sm" asChild>
+                                <Link href={`/clients/${client.id}/view`}>
+                                  <Eye className="h-4 w-4 mr-1" />
+                                  Consulter
+                                </Link>
+                              </Button>
+                            ) : null}
+                            <ClientFileActionsMenu file={client} onActionComplete={refetch} />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Élément de référence pour l'intersection observer */}
+            {hasMore && (
+              <div ref={ref} className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-brand-blue" />
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

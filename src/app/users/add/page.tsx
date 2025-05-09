@@ -31,6 +31,7 @@ import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { MultiSelect, type MultiSelectOption } from '@/components/ui/multi-select';
 import { LoadingButton } from '@/components/ui/loading-button';
+import { toast } from 'sonner';
 
 // Définir l'enum des rôles
 const RoleEnum = {
@@ -59,8 +60,8 @@ export default function AddUserPage() {
 
   // Options de rôles disponibles
   const roleOptions: MultiSelectOption[] = [
-    { value: RoleEnum.SUPER_ADMIN, label: 'Super Administrateur' },
-    { value: RoleEnum.ADMIN, label: 'Administrateur' },
+    { value: RoleEnum.SUPER_ADMIN, label: 'Contrôle Interne' },
+    { value: RoleEnum.ADMIN, label: 'Conformité' },
     { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
     { value: RoleEnum.ADVISOR, label: 'Conseiller' },
   ];
@@ -86,15 +87,21 @@ export default function AddUserPage() {
       });
 
       if (result) {
-        router.push('/users');
+        // Afficher un message de succès
+        toast.success('Utilisateur créé avec succès');
+
+        // Rediriger vers la liste des utilisateurs avec un paramètre indiquant que nous venons d'ajouter un utilisateur
+        router.push('/users?fromAdd=true');
       }
+    } catch (error) {
+      toast.error("Erreur lors de la création de l'utilisateur");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <AuthenticatedLayout title="Ajouter un utilisateur" userName={profile?.firstName || ''}>
+    <AuthenticatedLayout title="Ajouter un utilisateur" userName={profile?.firstname || ''}>
       <Breadcrumb
         segments={[
           { name: 'Utilisateurs', href: '/users' },
@@ -103,7 +110,7 @@ export default function AddUserPage() {
       />
 
       <div className="max-w-2xl mx-auto">
-        <Card>
+        <Card className="bg-white">
           <CardHeader>
             <CardTitle>Ajouter un utilisateur</CardTitle>
             <CardDescription>

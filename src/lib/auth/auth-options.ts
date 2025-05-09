@@ -2,7 +2,7 @@ import type { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { JWT } from 'next-auth/jwt';
 
-// Types pour les tokens
+// Types pour les tokens et utilisateurs
 interface TokenData {
   accessToken: string;
   refreshToken: string;
@@ -41,6 +41,7 @@ async function refreshAccessToken(
   try {
     // Vérifier si le refresh token est expiré
     if (token.refreshTokenExpires && new Date(token.refreshTokenExpires) < new Date()) {
+      console.warn('Refresh token expiré, déconnexion requise');
       return {
         ...token,
         error: 'RefreshTokenExpired',
@@ -59,7 +60,29 @@ async function refreshAccessToken(
     });
 
     if (!response.ok) {
-      throw new Error('Échec du rafraîchissement du token');
+      // Analyser l'erreur pour fournir un message plus précis
+      let errorMessage = 'Échec du rafraîchissement du token';
+      let errorType = 'RefreshAccessTokenError';
+
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+
+        // Détecter spécifiquement le message "Refresh token expiré"
+        if (errorMessage.includes('Refresh token expiré')) {
+          errorType = 'RefreshTokenExpired';
+        }
+      } catch (e) {
+        // Ignorer les erreurs de parsing JSON
+      }
+
+      console.error(`Erreur HTTP ${response.status}: ${errorMessage}`);
+
+      return {
+        ...token,
+        error: errorType,
+        errorDetail: errorMessage,
+      };
     }
 
     const refreshedTokens = await response.json();
@@ -70,6 +93,8 @@ async function refreshAccessToken(
     if (!decodedToken) {
       throw new Error('Token rafraîchi invalide');
     }
+
+    console.log('Token rafraîchi avec succès');
 
     return {
       ...token,
@@ -83,13 +108,24 @@ async function refreshAccessToken(
         username: decodedToken.username,
         roles: decodedToken.roles,
       },
+      error: undefined, // Effacer toute erreur précédente
     };
   } catch (error) {
     console.error('Erreur lors du rafraîchissement du token:', error);
 
+    // Déterminer le type d'erreur pour une meilleure gestion
+    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+    let errorType = 'RefreshAccessTokenError';
+
+    // Détecter spécifiquement le message "Refresh token expiré"
+    if (errorMessage.includes('Refresh token expiré')) {
+      errorType = 'RefreshTokenExpired';
+    }
+
     return {
       ...token,
-      error: 'RefreshAccessTokenError',
+      error: errorType,
+      errorDetail: errorMessage,
     };
   }
 }
@@ -121,7 +157,17 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!response.ok) {
-            throw new Error("Échec de l'authentification");
+            // Analyser l'erreur pour fournir un message plus précis
+            let errorMessage = "Échec de l'authentification";
+            try {
+              const errorData = await response.json();
+              errorMessage = errorData.message || errorMessage;
+            } catch (e) {
+              // Ignorer les erreurs de parsing JSON
+            }
+
+            console.error(`Erreur HTTP ${response.status}: ${errorMessage}`);
+            throw new Error(errorMessage);
           }
 
           const data = await response.json();
@@ -180,6 +226,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Le token a expiré, essayer de le rafraîchir
+      console.log('Token expiré, tentative de rafraîchissement...');
       return refreshAccessToken(token);
     },
     async session({ session, token }) {

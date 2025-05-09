@@ -1,69 +1,79 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { AlertCircle } from 'lucide-react';
-import { Logo } from '@/components/layout/logo';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-
-// Mapping des codes d'erreur vers des messages utilisateur
-const errorMessages: Record<string, string> = {
-  CredentialsSignin:
-    "Identifiants incorrects. Veuillez vérifier votre nom d'utilisateur et mot de passe.",
-  SessionRequired: 'Vous devez être connecté pour accéder à cette page.',
-  AccessDenied: "Vous n'avez pas les droits nécessaires pour accéder à cette ressource.",
-  RefreshAccessTokenError: 'Votre session a expiré. Veuillez vous reconnecter.',
-  RefreshTokenExpired: 'Votre session a expiré. Veuillez vous reconnecter.',
-  OAuthAccountNotLinked: 'Ce compte est déjà lié à un autre utilisateur.',
-  OAuthSignInError: 'Erreur lors de la connexion avec le fournisseur externe.',
-  OAuthCallbackError: 'Erreur lors de la connexion avec le fournisseur externe.',
-  default: "Une erreur est survenue lors de l'authentification. Veuillez réessayer.",
-};
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signOut } from 'next-auth/react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from 'next/image';
+import { toast } from 'sonner';
 
 export default function AuthErrorPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const error = searchParams.get('error');
 
+  // Déconnecter l'utilisateur et rediriger vers la page de connexion immédiatement
   useEffect(() => {
-    const error = searchParams.get('error');
-    if (error && errorMessages[error]) {
-      setErrorMessage(errorMessages[error]);
-    } else {
-      setErrorMessage(errorMessages.default);
-    }
-  }, [searchParams]);
+    const handleAuthError = async () => {
+      // Déconnecter l'utilisateur immédiatement
+      await signOut({ redirect: false });
 
+      // Afficher un message
+      toast.error(getErrorMessage());
+
+      // Rediriger vers la page de connexion
+      router.push('/auth/login');
+    };
+
+    // Exécuter la déconnexion dès le chargement de la page
+    handleAuthError();
+  }, [error, router]);
+
+  // Déterminer le message d'erreur à afficher
+  const getErrorMessage = () => {
+    switch (error) {
+      case 'RefreshAccessTokenError':
+        return 'Votre session a expiré. Veuillez vous reconnecter.';
+      case 'RefreshTokenExpired':
+        return 'Votre session a expiré. Veuillez vous reconnecter.';
+      case 'CredentialsSignin':
+        return "Identifiants incorrects. Veuillez vérifier votre nom d'utilisateur et votre mot de passe.";
+      case 'SessionRequired':
+        return 'Vous devez être connecté pour accéder à cette page.';
+      default:
+        return "Une erreur s'est produite lors de l'authentification. Veuillez réessayer.";
+    }
+  };
+
+  // Cette page ne sera affichée que brièvement avant la redirection
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gradient-blue">
-      <div className="flex flex-col items-center mb-10">
-        <Logo />
-      </div>
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-              <AlertCircle className="h-10 w-10 text-red-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-100 via-blue-200 to-blue-300">
+      <div className="w-full max-w-md px-4">
+        <div className="text-center mb-8">
+          <Image
+            src="/images/logo.png"
+            alt="Services Financiers Étudiants"
+            width={150}
+            height={80}
+            className="mx-auto mb-4"
+          />
+          <h1 className="text-2xl font-bold text-brand-blue">Services Financiers Étudiants</h1>
+        </div>
+
+        <Card className="bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle>Redirection en cours...</CardTitle>
+            <CardDescription>Vous allez être redirigé vers la page de connexion.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-4">
+              <p className="text-red-600 mb-4">{getErrorMessage()}</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mx-auto"></div>
+              <p className="text-sm text-gray-500 mt-4">Redirection vers la page de connexion...</p>
             </div>
-          </div>
-          <CardTitle className="text-2xl font-bold">Erreur d'authentification</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-gray-600 mb-4">{errorMessage}</p>
-          <div className="bg-amber-50 border border-amber-200 rounded-md p-4 text-sm text-amber-800">
-            <p>Si le problème persiste, veuillez contacter le support technique.</p>
-          </div>
-        </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button asChild className="bg-brand-blue hover:bg-brand-blue/90">
-            <Link href="/login">Retour à la connexion</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/">Retour à l'accueil</Link>
-          </Button>
-        </CardFooter>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

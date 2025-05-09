@@ -7,7 +7,7 @@ import type {
   SetPasswordRequest,
 } from '@/types/user';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:9090/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_PATH_URL;
 
 // Fonction utilitaire pour les requêtes API
 async function fetchApi<T>(

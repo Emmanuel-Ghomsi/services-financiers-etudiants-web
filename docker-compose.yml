@@ -1,0 +1,21 @@
+services:
+  sfe_web:
+    container_name: sfe_web
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: always
+    env_file:
+      - .env.production
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "2027:3000"
+    volumes:
+      - /var/www/sfe/static:/mnt/static
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    external: true
