@@ -4,15 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import {
-  Users,
-  UserPlus,
-  ChevronDown,
-  ChevronRight,
-  LogOut,
-  Home,
-  X,
-} from 'lucide-react';
+import { Users, UserPlus, ChevronDown, ChevronRight, LogOut, Home, X, Receipt } from 'lucide-react';
 import { useProfile } from '@/lib/api/hooks/use-profile';
 import { signOut } from 'next-auth/react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -35,6 +27,11 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
   // Vérifier si l'utilisateur a un rôle d'administrateur
   const isAdmin = profile?.roles?.some(
     (role) => role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN'
+  );
+
+  // Vérifier si l'utilisateur peut accéder aux dépenses (ADMIN, SUPER_ADMIN, RH)
+  const canAccessExpenses = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
   );
 
   // Fonction pour basculer l'état d'un menu
@@ -258,6 +255,23 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
               </div>
             )}
           </div>
+
+          {/* Dépenses - visible pour ADMIN, SUPER_ADMIN, RH */}
+          {canAccessExpenses && (
+            <Link
+              href="/expenses"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/expenses')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+              onClick={isMobile ? closeMobileSidebar : undefined}
+            >
+              <Receipt className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span>Dépenses</span>}
+            </Link>
+          )}
         </nav>
       </div>
 
