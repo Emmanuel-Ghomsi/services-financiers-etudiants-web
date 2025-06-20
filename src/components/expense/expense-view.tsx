@@ -12,10 +12,9 @@ import {
   User,
   Tag,
   DollarSign,
-  FileImage,
   Edit,
   ArrowLeft,
-  Download,
+  Eye,
 } from 'lucide-react';
 import type { ExpenseDTO } from '@/types/expense';
 import {
@@ -23,7 +22,8 @@ import {
   EXPENSE_CATEGORY_GROUP_LABELS,
 } from '@/lib/constants/expense-categories';
 import { formatCurrency } from '@/lib/utils/currency';
-import { useExpenseDownload } from '@/lib/api/hooks/use-expense-download';
+import { useState } from 'react';
+import { DocumentViewer } from './document-viewer';
 
 interface ExpenseViewProps {
   expense: ExpenseDTO;
@@ -33,7 +33,7 @@ interface ExpenseViewProps {
 }
 
 export function ExpenseView({ expense, onEdit, onBack, employeeName }: ExpenseViewProps) {
-  const { downloadJustificatif, isDownloading } = useExpenseDownload();
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
@@ -43,10 +43,8 @@ export function ExpenseView({ expense, onEdit, onBack, employeeName }: ExpenseVi
     return format(new Date(dateString), 'dd/MM/yyyy à HH:mm', { locale: fr });
   };
 
-  const handleDownloadFile = async () => {
-    if (expense.fileUrl) {
-      await downloadJustificatif(expense.id);
-    }
+  const handleViewDocument = () => {
+    setIsViewerOpen(true);
   };
 
   // Extraire le nom du fichier de l'URL
@@ -189,39 +187,24 @@ export function ExpenseView({ expense, onEdit, onBack, employeeName }: ExpenseVi
           {expense.fileUrl && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileImage className="h-5 w-5" />
-                  Pièce justificative
-                </CardTitle>
+                <CardTitle>Pièce justificative</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                  <FileText className="h-5 w-5 text-blue-600" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {getFileName(expense.fileUrl)}
-                    </p>
-                    <p className="text-xs text-gray-500">Pièce justificative</p>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                    <div>
+                      <p className="font-medium">{getFileName(expense.fileUrl)}</p>
+                      <p className="text-sm text-gray-500">Pièce justificative</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleViewDocument} variant="outline" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      Visualiser
+                    </Button>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleDownloadFile}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? (
-                    <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 mr-2" />
-                      Téléchargement...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4 mr-2" />
-                      Télécharger le document
-                    </>
-                  )}
-                </Button>
               </CardContent>
             </Card>
           )}
@@ -242,6 +225,15 @@ export function ExpenseView({ expense, onEdit, onBack, employeeName }: ExpenseVi
               </div>
             </CardContent>
           </Card>
+
+          {/* Visionneuse de documents */}
+          <DocumentViewer
+            isOpen={isViewerOpen}
+            onClose={() => setIsViewerOpen(false)}
+            expenseId={expense.id}
+            fileName={expense.fileUrl ? getFileName(expense.fileUrl) : undefined}
+            fileUrl={expense.fileUrl}
+          />
         </div>
       </div>
     </div>
