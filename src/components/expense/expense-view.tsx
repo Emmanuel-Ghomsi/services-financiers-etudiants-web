@@ -6,16 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import {
-  FileText,
-  Calendar,
-  User,
-  Tag,
-  DollarSign,
-  Edit,
-  ArrowLeft,
-  Eye,
-} from 'lucide-react';
+import { FileText, Calendar, User, Tag, DollarSign, Edit, ArrowLeft, Eye } from 'lucide-react';
 import type { ExpenseDTO } from '@/types/expense';
 import {
   EXPENSE_CATEGORY_LABELS,
@@ -69,12 +60,6 @@ export function ExpenseView({ expense, onEdit, onBack, employeeName }: ExpenseVi
             <p className="text-gray-600">Créée le {formatDateTime(expense.createdAt)}</p>
           </div>
         </div>
-        {onEdit && (
-          <Button onClick={onEdit}>
-            <Edit className="h-4 w-4 mr-2" />
-            Modifier
-          </Button>
-        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -194,15 +179,15 @@ export function ExpenseView({ expense, onEdit, onBack, employeeName }: ExpenseVi
                   <div className="flex items-center gap-3">
                     <FileText className="h-8 w-8 text-blue-600" />
                     <div>
-                      <p className="font-medium">{getFileName(expense.fileUrl)}</p>
+                      <p
+                        className="font-medium"
+                        onClick={handleViewDocument}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        {getFileName(expense.fileUrl)}
+                      </p>
                       <p className="text-sm text-gray-500">Pièce justificative</p>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button onClick={handleViewDocument} variant="outline" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      Visualiser
-                    </Button>
                   </div>
                 </div>
               </CardContent>

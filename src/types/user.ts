@@ -54,7 +54,7 @@ export interface UpdateUserRequest {
 }
 
 export interface AddRoleRequest {
-  role: string;
+  roles: string[];
 }
 
 export interface ChangeUserStatusRequest {

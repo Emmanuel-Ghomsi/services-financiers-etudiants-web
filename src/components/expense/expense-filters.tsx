@@ -157,7 +157,7 @@ export function ExpenseFilters({ onFilter, onReset }: ExpenseFiltersProps) {
                     <SelectItem value="allEmployees">Tous les employés</SelectItem>
                     {usersData?.items?.map((user: any) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.firstname} {user.lastname}
+                        {user.username}
                       </SelectItem>
                     ))}
                   </SelectContent>

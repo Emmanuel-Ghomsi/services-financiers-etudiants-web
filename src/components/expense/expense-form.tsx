@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { FileText, Upload, X } from 'lucide-react';
+import { Upload, X, FileText } from 'lucide-react';
 import {
   ExpenseCategory,
   ExpenseCategoryGroup,
@@ -79,9 +79,12 @@ export function ExpenseForm({ expense, onSubmit, onCancel, isLoading }: ExpenseF
   useEffect(() => {
     if (watchedGroup && watchedGroup !== selectedGroup) {
       setSelectedGroup(watchedGroup);
-      form.setValue('category', '' as any);
+      // Ne pas réinitialiser la catégorie si on est en mode édition et que la catégorie actuelle appartient au groupe sélectionné
+      if (!expense || !CATEGORIES_BY_GROUP[watchedGroup].includes(form.watch('category'))) {
+        form.setValue('category', '' as any);
+      }
     }
-  }, [watchedGroup, selectedGroup, form]);
+  }, [watchedGroup, selectedGroup, form, expense]);
 
   useEffect(() => {
     if (expense) {
@@ -103,16 +106,26 @@ export function ExpenseForm({ expense, onSubmit, onCancel, isLoading }: ExpenseF
     if (expense?.fileUrl) {
       setHasExistingFile(false);
     }
+    // Reset de l'input file
+    const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+    }
   };
 
   const handleSubmit = (data: ExpenseFormData) => {
-    const submitData = {
+    // Créer l'objet avec le bon type qui inclut fileUrl
+    const submitData: CreateExpenseRequest | UpdateExpenseRequest = {
       ...data,
       date: new Date(data.date),
       projectId: data.projectId || undefined,
     };
 
-    // Passer le fichier séparément
+    // Si on a supprimé le fichier existant, on doit le signaler
+    if (expense?.fileUrl && !hasExistingFile && !uploadedFile) {
+      submitData.fileUrl = undefined; // Signaler la suppression
+    }
+
     onSubmit(submitData, uploadedFile || undefined);
   };
 
@@ -127,12 +140,12 @@ export function ExpenseForm({ expense, onSubmit, onCancel, isLoading }: ExpenseF
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Montant *</Label>
+              <Label htmlFor="amount">Montant (FCFA) *</Label>
               <Input
                 id="amount"
                 type="number"
-                step="0.01"
-                placeholder="0.00"
+                step="1"
+                placeholder="0"
                 {...form.register('amount')}
               />
               {form.formState.errors.amount && (

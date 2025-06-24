@@ -16,7 +16,6 @@ export interface ExpensePaginationDTO {
   items: ExpenseDTO[];
   total: number;
   page: number;
-  limit: number;
   totalPages: number;
 }
 
@@ -60,12 +59,15 @@ export interface ExpenseFilterRequest {
   group?: ExpenseCategoryGroup;
   employeeId?: string;
   projectId?: string;
+  minAmount?: number
+  maxAmount?: number
   page?: number;
   limit?: number;
 }
 
 export interface ExpenseStatsRequest {
-  year: number;
+  year: number
+  month?: number
 }
 
 export enum ExpenseCategoryGroup {

@@ -11,6 +11,7 @@ import { AdminStats } from '@/components/dashboard/admin-stats';
 import { AdvisorStats } from '@/components/dashboard/advisor-stats';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { SalaryWidgets } from '@/components/dashboard/salary-widgets';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -25,6 +26,11 @@ export default function DashboardPage() {
   } = useDashboardStats();
 
   const router = useRouter();
+
+  // Vérifier si l'utilisateur peut accéder aux widgets salaires
+  const canAccessSalaryWidgets = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH', 'ACCOUNTANT'].includes(role.toUpperCase())
+  );
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
@@ -66,6 +72,14 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold">Bienvenue, {profile?.firstname || profile?.username}</h1>
 
         <div className="space-y-10">
+          {/* Widgets salaires pour les rôles autorisés */}
+          {canAccessSalaryWidgets && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Résumé financier</h2>
+              <SalaryWidgets />
+            </div>
+          )}
+
           {/* Afficher les statistiques en fonction du rôle retourné par l'API */}
           {rawData.role === 'SUPER_ADMIN' && isSuperAdmin && (
             <SuperAdminStats stats={rawData.stats as any} />

@@ -47,11 +47,18 @@ export function useFilteredExpenses(filters: ExpenseFilterRequest) {
   return useQuery({
     queryKey: ['expenses', 'filtered', filters],
     queryFn: async (): Promise<ExpenseDTO[]> => {
-      return apiRequest<ExpenseDTO[]>(
-        `/expenses/filter?${new URLSearchParams(filters as any).toString()}`
-      );
+      const params = new URLSearchParams();
+
+      // Ajouter tous les filtres non vides
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, value.toString());
+        }
+      });
+
+      return apiRequest<ExpenseDTO[]>(`/expenses/filter?${params.toString()}`);
     },
-    enabled: !!session?.accessToken && !!filters.employeeId,
+    enabled: !!session?.accessToken,
   });
 }
 
@@ -69,6 +76,7 @@ export function useExpenseStats(params: ExpenseStatsRequest) {
   });
 }
 
+// Fonction utilitaire pour uploader un fichier
 async function uploadExpenseFile(expenseId: string, file: File): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
@@ -241,5 +249,6 @@ export function useExpenseMutations() {
     createExpense,
     updateExpense,
     deleteExpense,
+    uploadFile,
   };
 }

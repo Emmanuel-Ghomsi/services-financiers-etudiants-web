@@ -35,7 +35,7 @@ export default function ExpensesPage() {
 
   // Utiliser les dépenses filtrées si des filtres sont appliqués, sinon les dépenses paginées
   const { data: expensesData, isLoading } = useExpenses({
-    page: currentPage,
+    page: hasFilters ? 1 : currentPage,
     limit,
   });
 
@@ -48,6 +48,10 @@ export default function ExpensesPage() {
   const { createExpense, updateExpense, deleteExpense } = useExpenseMutations();
 
   const currentData = hasFilters ? filteredExpenses : expensesData?.items;
+  const currentTotal = hasFilters ? filteredExpenses?.length || 0 : expensesData?.total || 0;
+  const currentTotalPages = hasFilters
+    ? Math.ceil(currentTotal / limit)
+    : expensesData?.totalPages || 1;
 
   const currentLoading = hasFilters ? isFilterLoading : isLoading;
 
@@ -62,10 +66,10 @@ export default function ExpensesPage() {
     );
   };
 
-  const handleUpdateExpense = (data: CreateExpenseRequest | UpdateExpenseRequest) => {
+  const handleUpdateExpense = (data: CreateExpenseRequest | UpdateExpenseRequest, file?: File) => {
     if (editingExpense) {
       updateExpense.mutate(
-        { id: editingExpense.id, data: data as UpdateExpenseRequest },
+        { id: editingExpense.id, data: data as UpdateExpenseRequest, file },
         {
           onSuccess: () => {
             setEditingExpense(null);
@@ -137,10 +141,11 @@ export default function ExpensesPage() {
                   isLoading={currentLoading}
                 />
 
-                {expensesData && !hasFilters && (
+                {(expensesData || hasFilters) && (
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-700">
-                      Page {currentPage} sur {expensesData.totalPages}
+                      Page {currentPage} sur {currentTotalPages}
+                      {hasFilters && ` (${currentTotal} résultats filtrés)`}
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -154,10 +159,8 @@ export default function ExpensesPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setCurrentPage(Math.min(expensesData.totalPages, currentPage + 1))
-                        }
-                        disabled={currentPage === expensesData.totalPages}
+                        onClick={() => setCurrentPage(Math.min(currentTotalPages, currentPage + 1))}
+                        disabled={currentPage === currentTotalPages}
                       >
                         Suivant
                       </Button>

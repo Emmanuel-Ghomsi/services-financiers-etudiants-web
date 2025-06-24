@@ -27,8 +27,11 @@ export default function ExpenseViewPage() {
 
   // Trouver le nom de l'employé
   const employee = usersData?.items?.find((user: any) => user.id === expense?.employeeId);
+
   const employeeName = employee
-    ? `${employee.firstName ?? '-'} ${employee.lastName ?? '-'}`
+    ? employee.firstName && employee.lastName
+      ? employee.firstName + ' ' + employee.lastName
+      : employee.username
     : undefined;
 
   if (isExpenseLoading) {
