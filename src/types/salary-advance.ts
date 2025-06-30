@@ -18,7 +18,7 @@ export interface CreateSalaryAdvanceRequest {
   reason: string;
   requestedDate: Date;
   employeeId: string;
-  userId: string;
+  userId?: string;
 }
 
 export interface UpdateSalaryAdvanceRequest {

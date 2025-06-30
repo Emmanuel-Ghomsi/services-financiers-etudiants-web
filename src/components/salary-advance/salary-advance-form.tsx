@@ -109,6 +109,7 @@ export function SalaryAdvanceForm({
         amount: data.amount,
         reason: data.reason,
         requestedDate: new Date(data.requestedDate),
+        userId: profile?.id,
       };
       onSubmit(createData);
     }
