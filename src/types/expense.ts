@@ -1,28 +1,20 @@
 export interface ExpenseDTO {
   id: string;
   amount: number;
-  date: string; // format ISO YYYY-MM-DD
-  category: string;
-  group: string;
+  date: string;
+  category: ExpenseCategory;
+  group: ExpenseCategoryGroup;
   description?: string;
-  fileUrl?: string;
   employeeId: string;
-  projectId?: string | null;
+  projectId?: string;
+  fileUrl?: string;
+  status: ValidationStatus;
+  validatedByAdmin?: string;
+  validatedBySuperAdmin?: string;
+  rejectedReason?: string;
+  creatorId?: string;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface ExpensePaginationDTO {
-  items: ExpenseDTO[];
-  total: number;
-  page: number;
-  totalPages: number;
-}
-
-export interface ExpenseStatsDTO {
-  totalYear: number;
-  monthlyTotals: Record<string, number>; // clé = "01" à "12"
-  byCategory: Record<string, number>; // clé = nom de catégorie
 }
 
 export interface CreateExpenseRequest {
@@ -31,9 +23,10 @@ export interface CreateExpenseRequest {
   category: ExpenseCategory;
   group: ExpenseCategoryGroup;
   description?: string;
-  fileUrl?: string;
   employeeId: string;
   projectId?: string;
+  fileUrl?: string;
+  userId: string;
 }
 
 export interface UpdateExpenseRequest {
@@ -42,9 +35,9 @@ export interface UpdateExpenseRequest {
   category?: ExpenseCategory;
   group?: ExpenseCategoryGroup;
   description?: string;
-  fileUrl?: string;
   employeeId?: string;
   projectId?: string;
+  fileUrl?: string;
 }
 
 export interface ExpenseListRequest {
@@ -59,15 +52,36 @@ export interface ExpenseFilterRequest {
   group?: ExpenseCategoryGroup;
   employeeId?: string;
   projectId?: string;
-  minAmount?: number
-  maxAmount?: number
+  minAmount?: number;
+  maxAmount?: number;
+  status?: ValidationStatus;
   page?: number;
   limit?: number;
 }
 
+export interface ExpensePaginationDTO {
+  items: ExpenseDTO[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface ExpenseStatsDTO {
+  totalYear: number;
+  monthlyTotals: Record<string, number>;
+  byCategory: Record<string, number>;
+}
+
 export interface ExpenseStatsRequest {
-  year: number
-  month?: number
+  year: number;
+  month?: number;
+}
+
+export enum ValidationStatus {
+  AWAITING_ADMIN_VALIDATION = 'AWAITING_ADMIN_VALIDATION',
+  AWAITING_SUPERADMIN_VALIDATION = 'AWAITING_SUPERADMIN_VALIDATION',
+  VALIDATED = 'VALIDATED',
+  REJECTED = 'REJECTED',
 }
 
 export enum ExpenseCategoryGroup {

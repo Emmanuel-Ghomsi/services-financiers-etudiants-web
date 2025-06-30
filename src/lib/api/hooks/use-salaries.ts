@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api/api-client';
 import { toast } from 'sonner';
+import { useSession } from 'next-auth/react';
 import type {
   SalaryDTO,
   SalaryPaginationDTO,
@@ -13,7 +14,6 @@ import type {
   SalaryPdfDataDTO,
 } from '@/types/salary';
 
-// Hook pour récupérer les salaires paginés
 export function useSalaries(params: SalaryListRequest) {
   return useQuery<SalaryPaginationDTO>({
     queryKey: ['salaries', params],
@@ -27,7 +27,6 @@ export function useSalaries(params: SalaryListRequest) {
   });
 }
 
-// Hook pour récupérer un salaire par ID
 export function useSalary(id: string) {
   return useQuery<SalaryDTO>({
     queryKey: ['salary', id],
@@ -36,7 +35,6 @@ export function useSalary(id: string) {
   });
 }
 
-// Hook pour récupérer les salaires par employé
 export function useSalariesByEmployee(employeeId: string) {
   return useQuery<SalaryDTO[]>({
     queryKey: ['salaries', 'employee', employeeId],
@@ -45,7 +43,6 @@ export function useSalariesByEmployee(employeeId: string) {
   });
 }
 
-// Hook pour récupérer les salaires par période
 export function useSalariesByPeriod(params: SalaryPeriodFilterRequest) {
   return useQuery<SalaryDTO[]>({
     queryKey: ['salaries', 'period', params],
@@ -59,7 +56,6 @@ export function useSalariesByPeriod(params: SalaryPeriodFilterRequest) {
   });
 }
 
-// Hook pour récupérer les salaires par période paginés
 export function useSalariesByPeriodPaginated(params: SalaryPeriodPaginatedRequest) {
   return useQuery<SalaryPeriodPaginationDTO>({
     queryKey: ['salaries', 'period', 'paginated', params],
@@ -75,7 +71,6 @@ export function useSalariesByPeriodPaginated(params: SalaryPeriodPaginatedReques
   });
 }
 
-// Hook pour récupérer les données PDF d'un salaire
 export function useSalaryPdfData(id: string) {
   return useQuery<SalaryPdfDataDTO>({
     queryKey: ['salary', 'pdf', id],
@@ -84,15 +79,18 @@ export function useSalaryPdfData(id: string) {
   });
 }
 
-// Hook pour les mutations de salaires
 export function useSalaryMutations() {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   const createSalary = useMutation({
     mutationFn: (data: CreateSalaryRequest) =>
       apiRequest<SalaryDTO>('/salaries', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          userId: session?.user?.id || data.userId,
+        }),
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salaries'] });
@@ -132,14 +130,64 @@ export function useSalaryMutations() {
     },
   });
 
+  const validateAsAdmin = useMutation({
+    mutationFn: ({ id, validatorId }: { id: string; validatorId: string }) => {
+      return apiRequest(`/salaries/${id}/validate-admin`, {
+        method: 'PATCH',
+        body: JSON.stringify({ validatorId }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salaries'] });
+      toast.success("Salaire validé par l'administrateur");
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la validation: ${error.message}`);
+    },
+  });
+
+  const validateAsSuperAdmin = useMutation({
+    mutationFn: ({ id, validatorId }: { id: string; validatorId: string }) => {
+      return apiRequest(`/salaries/${id}/validate-superadmin`, {
+        method: 'PATCH',
+        body: JSON.stringify({ validatorId }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salaries'] });
+      toast.success('Salaire validé par le super-administrateur');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors de la validation: ${error.message}`);
+    },
+  });
+
+  const rejectSalary = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) => {
+      return apiRequest(`/salaries/${id}/reject`, {
+        method: 'PATCH',
+        body: JSON.stringify({ reason }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['salaries'] });
+      toast.success('Salaire rejeté');
+    },
+    onError: (error: Error) => {
+      toast.error(`Erreur lors du rejet: ${error.message}`);
+    },
+  });
+
   return {
     createSalary,
     updateSalary,
     deleteSalary,
+    validateAsAdmin,
+    validateAsSuperAdmin,
+    rejectSalary,
   };
 }
 
-// Hook pour télécharger une fiche de paie PDF
 export function useSalaryPdfDownload() {
   const downloadPdf = useMutation({
     mutationFn: async (id: string) => {

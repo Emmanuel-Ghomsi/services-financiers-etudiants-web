@@ -49,7 +49,6 @@ export function useFilteredExpenses(filters: ExpenseFilterRequest) {
     queryFn: async (): Promise<ExpenseDTO[]> => {
       const params = new URLSearchParams();
 
-      // Ajouter tous les filtres non vides
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
           params.append(key, value.toString());
@@ -76,7 +75,6 @@ export function useExpenseStats(params: ExpenseStatsRequest) {
   });
 }
 
-// Fonction utilitaire pour uploader un fichier
 async function uploadExpenseFile(expenseId: string, file: File): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
@@ -102,23 +100,22 @@ export function useExpenseMutations() {
       data: CreateExpenseRequest;
       file?: File;
     }): Promise<ExpenseDTO> => {
-      // Étape 1: Créer la dépense sans le fichier
-      const expenseData = { ...data };
-      delete expenseData.fileUrl; // Supprimer fileUrl des données initiales
+      const expenseData = {
+        ...data,
+        userId: session?.user?.id || data.userId,
+      };
+      delete expenseData.fileUrl;
 
       const createdExpense = await apiRequest<ExpenseDTO>('/expenses', {
         method: 'POST',
         body: JSON.stringify(expenseData),
       });
 
-      // Étape 2: Uploader le fichier si présent
       if (file) {
         try {
           const fileUrl = await uploadExpenseFile(createdExpense.id, file);
-          // Retourner la dépense avec l'URL du fichier mise à jour
           return { ...createdExpense, fileUrl };
         } catch (error) {
-          // Si l'upload échoue, on garde la dépense créée mais on notifie l'erreur
           toast({
             title: 'Attention',
             description:
@@ -157,23 +154,19 @@ export function useExpenseMutations() {
       data: UpdateExpenseRequest;
       file?: File;
     }): Promise<ExpenseDTO> => {
-      // Étape 1: Mettre à jour la dépense sans le fichier
       const expenseData = { ...data };
-      delete expenseData.fileUrl; // Supprimer fileUrl des données de mise à jour
+      delete expenseData.fileUrl;
 
       const updatedExpense = await apiRequest<ExpenseDTO>(`/expenses/${id}`, {
         method: 'PUT',
         body: JSON.stringify(expenseData),
       });
 
-      // Étape 2: Uploader le nouveau fichier si présent
       if (file) {
         try {
           const fileUrl = await uploadExpenseFile(id, file);
-          // Retourner la dépense avec l'URL du fichier mise à jour
           return { ...updatedExpense, fileUrl };
         } catch (error) {
-          // Si l'upload échoue, on garde la dépense mise à jour mais on notifie l'erreur
           toast({
             title: 'Attention',
             description:
@@ -224,7 +217,75 @@ export function useExpenseMutations() {
     },
   });
 
-  // Mutation séparée pour uploader un fichier sur une dépense existante
+  const validateAsAdmin = useMutation({
+    mutationFn: async ({ id, validatorId }: { id: string; validatorId: string }) => {
+      return apiRequest(`/expenses/${id}/validate-admin`, {
+        method: 'PATCH',
+        body: JSON.stringify({ validatorId }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({
+        title: 'Succès',
+        description: "Dépense validée par l'administrateur",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Erreur lors de la validation',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const validateAsSuperAdmin = useMutation({
+    mutationFn: async ({ id, validatorId }: { id: string; validatorId: string }) => {
+      return apiRequest(`/expenses/${id}/validate-superadmin`, {
+        method: 'PATCH',
+        body: JSON.stringify({ validatorId }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({
+        title: 'Succès',
+        description: 'Dépense validée par le super-administrateur',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Erreur lors de la validation',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const rejectExpense = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      return apiRequest(`/expenses/${id}/reject`, {
+        method: 'PATCH',
+        body: JSON.stringify({ reason }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      toast({
+        title: 'Succès',
+        description: 'Dépense rejetée',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Erreur lors du rejet',
+        variant: 'destructive',
+      });
+    },
+  });
+
   const uploadFile = useMutation({
     mutationFn: async ({ expenseId, file }: { expenseId: string; file: File }): Promise<string> => {
       return uploadExpenseFile(expenseId, file);
@@ -249,6 +310,9 @@ export function useExpenseMutations() {
     createExpense,
     updateExpense,
     deleteExpense,
+    validateAsAdmin,
+    validateAsSuperAdmin,
+    rejectExpense,
     uploadFile,
   };
 }

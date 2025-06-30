@@ -59,7 +59,7 @@ export function EditRolesModal({ user, isOpen, onClose, onSuccess }: EditRolesMo
     { value: RoleEnum.ADMIN, label: 'Conformité' },
     { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
     { value: RoleEnum.ADVISOR, label: 'Conseiller' },
-    { value: RoleEnum.RH, label: 'RH' },
+    { value: RoleEnum.RH, label: 'Ressource Humaine' },
   ];
 
   const form = useForm<FormValues>({

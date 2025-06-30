@@ -1,5 +1,4 @@
-import { SalaryPaymentMode } from '@/types/salary';
-import { SalaryAdvanceStatus } from '@/types/salary-advance';
+import { SalaryPaymentMode, ValidationStatus } from '@/types/salary';
 
 export const PAYMENT_MODE_LABELS: Record<SalaryPaymentMode, string> = {
   [SalaryPaymentMode.BANK_TRANSFER]: 'Virement bancaire',
@@ -7,16 +6,18 @@ export const PAYMENT_MODE_LABELS: Record<SalaryPaymentMode, string> = {
   [SalaryPaymentMode.MOBILE_MONEY]: 'Mobile Money',
 };
 
-export const SALARY_ADVANCE_STATUS_LABELS: Record<SalaryAdvanceStatus, string> = {
-  [SalaryAdvanceStatus.PENDING]: 'En attente',
-  [SalaryAdvanceStatus.APPROVED]: 'Approuvée',
-  [SalaryAdvanceStatus.REJECTED]: 'Rejetée',
+export const SALARY_ADVANCE_STATUS_LABELS: Record<ValidationStatus, string> = {
+  [ValidationStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente validation superadmin',
+  [ValidationStatus.AWAITING_ADMIN_VALIDATION]: 'En attente validation admin',
+  [ValidationStatus.VALIDATED]: 'Approuvée',
+  [ValidationStatus.REJECTED]: 'Rejetée',
 };
 
-export const SALARY_ADVANCE_STATUS_COLORS: Record<SalaryAdvanceStatus, string> = {
-  [SalaryAdvanceStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-  [SalaryAdvanceStatus.APPROVED]: 'bg-green-100 text-green-800',
-  [SalaryAdvanceStatus.REJECTED]: 'bg-red-100 text-red-800',
+export const SALARY_ADVANCE_STATUS_COLORS: Record<ValidationStatus, string> = {
+  [ValidationStatus.AWAITING_SUPERADMIN_VALIDATION]: 'bg-yellow-100 text-yellow-800',
+  [ValidationStatus.AWAITING_ADMIN_VALIDATION]: 'bg-yellow-100 text-yellow-800',
+  [ValidationStatus.VALIDATED]: 'bg-green-100 text-green-800',
+  [ValidationStatus.REJECTED]: 'bg-red-100 text-red-800',
 };
 
 export const MONTHS = [

@@ -10,6 +10,11 @@ export interface SalaryDTO {
   payslipUrl?: string;
   year: string;
   month: string;
+  status: ValidationStatus;
+  validatedByAdmin?: string;
+  validatedBySuperAdmin?: string;
+  rejectedReason?: string;
+  creatorId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -30,6 +35,7 @@ export interface CreateSalaryRequest {
   advances?: number;
   paymentMode: SalaryPaymentMode;
   paymentDate: Date;
+  userId: string;
 }
 
 export interface UpdateSalaryRequest {
@@ -91,4 +97,11 @@ export enum SalaryPaymentMode {
   BANK_TRANSFER = 'BANK_TRANSFER',
   CASH = 'CASH',
   MOBILE_MONEY = 'MOBILE_MONEY',
+}
+
+export enum ValidationStatus {
+  AWAITING_ADMIN_VALIDATION = 'AWAITING_ADMIN_VALIDATION',
+  AWAITING_SUPERADMIN_VALIDATION = 'AWAITING_SUPERADMIN_VALIDATION',
+  VALIDATED = 'VALIDATED',
+  REJECTED = 'REJECTED',
 }

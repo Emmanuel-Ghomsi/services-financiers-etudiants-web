@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'SUB_ADMIN' | 'ADVISOR' | string;
+type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'SUB_ADMIN' | 'ADVISOR' | 'RH' | string;
 
 interface UserRoleBadgeProps {
   role: UserRole;
@@ -18,6 +18,8 @@ export function UserRoleBadge({ role, className }: UserRoleBadgeProps) {
         return 'bg-cyan-100 text-cyan-800 border-cyan-200';
       case 'ADVISOR':
         return 'bg-green-100 text-green-800 border-green-200';
+      case 'RH':
+        return 'bg-pink-100 text-pink-800 border-pink-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -33,6 +35,8 @@ export function UserRoleBadge({ role, className }: UserRoleBadgeProps) {
         return 'Admin Délégué';
       case 'ADVISOR':
         return 'Conseiller';
+      case 'RH':
+        return 'Ressource Humaine';
       default:
         return role;
     }

@@ -3,8 +3,12 @@ export interface SalaryAdvanceDTO {
   amount: number;
   reason: string;
   requestedDate: string;
-  status: SalaryAdvanceStatus;
+  status: ValidationStatus;
   employeeId: string;
+  validatedByAdmin?: string;
+  validatedBySuperAdmin?: string;
+  rejectedReason?: string;
+  creatorId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -14,23 +18,25 @@ export interface CreateSalaryAdvanceRequest {
   reason: string;
   requestedDate: Date;
   employeeId: string;
+  userId: string;
 }
 
 export interface UpdateSalaryAdvanceRequest {
   amount?: number;
   reason?: string;
-  requestedDate?: string; // String pour l'API
-  status?: SalaryAdvanceStatus;
-  employeeId?: string; // Optionnel pour la modification
+  requestedDate?: string;
+  status?: ValidationStatus;
+  employeeId?: string;
 }
 
 export interface UpdateSalaryAdvanceStatusRequest {
-  status: SalaryAdvanceStatus;
+  status: ValidationStatus;
 }
 
-export enum SalaryAdvanceStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
+export enum ValidationStatus {
+  AWAITING_ADMIN_VALIDATION = 'AWAITING_ADMIN_VALIDATION',
+  AWAITING_SUPERADMIN_VALIDATION = 'AWAITING_SUPERADMIN_VALIDATION',
+  VALIDATED = 'VALIDATED',
   REJECTED = 'REJECTED',
 }
 

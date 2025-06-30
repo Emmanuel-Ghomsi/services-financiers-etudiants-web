@@ -39,6 +39,7 @@ const RoleEnum = {
   ADMIN: 'ADMIN',
   SUB_ADMIN: 'SUB_ADMIN',
   ADVISOR: 'ADVISOR',
+  RH: 'RH'
 } as const;
 
 type RoleType = keyof typeof RoleEnum;
@@ -64,6 +65,7 @@ export default function AddUserPage() {
     { value: RoleEnum.ADMIN, label: 'Conformité' },
     { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
     { value: RoleEnum.ADVISOR, label: 'Conseiller' },
+    { value: RoleEnum.RH, label: 'Ressource Humaine' },
   ];
 
   // Initialiser le formulaire
