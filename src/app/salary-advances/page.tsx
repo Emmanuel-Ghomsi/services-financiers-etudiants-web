@@ -27,8 +27,8 @@ import { useProfile } from '@/lib/api/hooks/use-profile';
 import type {
   CreateSalaryAdvanceRequest,
   UpdateSalaryAdvanceRequest,
-  SalaryAdvanceStatus,
   SalaryAdvanceDTO,
+  ValidationStatus,
 } from '@/types/salary-advance';
 import { AuthenticatedLayout } from '@/components/layout/authenticated-layout';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
@@ -77,7 +77,7 @@ export default function SalaryAdvancesPage() {
     });
   };
 
-  const handleUpdateStatus = (id: string, status: SalaryAdvanceStatus) => {
+  const handleUpdateStatus = (id: string, status: ValidationStatus) => {
     updateStatus.mutate(
       { id, data: { status } },
       {
@@ -196,7 +196,6 @@ export default function SalaryAdvancesPage() {
                 <CardContent>
                   <SalaryAdvancesTable
                     advances={allAdvances || []}
-                    onUpdateStatus={handleUpdateStatus}
                     onEdit={handleEditAdvance}
                     onDelete={handleDeleteAdvance}
                     isLoading={allAdvancesLoading}
@@ -214,7 +213,6 @@ export default function SalaryAdvancesPage() {
               <CardContent>
                 <SalaryAdvancesTable
                   advances={myAdvances || []}
-                  onUpdateStatus={handleUpdateStatus}
                   onEdit={handleEditAdvance}
                   onDelete={handleDeleteAdvance}
                   isLoading={myAdvancesLoading}
