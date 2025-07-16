@@ -45,6 +45,7 @@ export default function LeavesPage() {
     page: currentPage,
     limit: 10,
     filters: {
+      employeeUsername: searchTerm === '' ? undefined : searchTerm,
       leaveType: selectedType === 'all' ? undefined : selectedType,
       status: selectedStatus === 'all' ? undefined : selectedStatus,
     },
@@ -269,12 +270,28 @@ export default function LeavesPage() {
 
             {/* Pagination */}
             {leavesData && leavesData.totalPages > 1 && (
-              <div className="flex justify-center">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={leavesData.totalPages}
-                  onPageChange={setCurrentPage}
-                />
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-700">
+                  Page {currentPage} sur {leavesData.totalPages}
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Précédent
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(Math.min(leavesData.totalPages, currentPage + 1))}
+                    disabled={currentPage === leavesData.totalPages}
+                  >
+                    Suivant
+                  </Button>
+                </div>
               </div>
             )}
           </>
