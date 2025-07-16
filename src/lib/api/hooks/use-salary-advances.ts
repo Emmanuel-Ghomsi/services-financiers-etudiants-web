@@ -9,18 +9,19 @@ import type {
   UpdateSalaryAdvanceStatusRequest,
 } from '@/types/salary-advance';
 
-export function useAllSalaryAdvances() {
+export function useAllSalaryAdvances(options?: { enabled?: boolean }) {
   return useQuery<SalaryAdvanceDTO[]>({
     queryKey: ['salary-advances', 'all'],
     queryFn: () => apiRequest<SalaryAdvanceDTO[]>('/salary-advances'),
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function useSalaryAdvanceHistory(employeeId: string) {
+export function useSalaryAdvanceHistory(employeeId: string, options?: { enabled?: boolean }) {
   return useQuery<SalaryAdvanceDTO[]>({
     queryKey: ['salary-advances', 'history', employeeId],
     queryFn: () => apiRequest<SalaryAdvanceDTO[]>(`/salary-advances/history/${employeeId}`),
-    enabled: !!employeeId,
+    enabled: (options?.enabled ?? true) && !!employeeId,
   });
 }
 

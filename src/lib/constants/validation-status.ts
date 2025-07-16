@@ -1,8 +1,8 @@
 import { ValidationStatus } from '@/types/validation';
 
 export const VALIDATION_STATUS_LABELS: Record<ValidationStatus, string> = {
-  [ValidationStatus.AWAITING_ADMIN_VALIDATION]: 'En attente validation admin',
-  [ValidationStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente validation super-admin',
+  [ValidationStatus.AWAITING_ADMIN_VALIDATION]: 'En attente validation Conformité',
+  [ValidationStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente validation Contrôle Interne',
   [ValidationStatus.VALIDATED]: 'Validé',
   [ValidationStatus.REJECTED]: 'Rejeté',
 };

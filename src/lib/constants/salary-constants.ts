@@ -7,8 +7,8 @@ export const PAYMENT_MODE_LABELS: Record<SalaryPaymentMode, string> = {
 };
 
 export const SALARY_ADVANCE_STATUS_LABELS: Record<ValidationStatus, string> = {
-  [ValidationStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente validation superadmin',
-  [ValidationStatus.AWAITING_ADMIN_VALIDATION]: 'En attente validation admin',
+  [ValidationStatus.AWAITING_SUPERADMIN_VALIDATION]: 'En attente validation Contrôle Interne',
+  [ValidationStatus.AWAITING_ADMIN_VALIDATION]: 'En attente validation Conformité',
   [ValidationStatus.VALIDATED]: 'Approuvée',
   [ValidationStatus.REJECTED]: 'Rejetée',
 };

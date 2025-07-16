@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { useSalary, useSalaryMutations } from '@/lib/api/hooks/use-salaries';
 import { SalaryView } from '@/components/salary/salary-view';
@@ -14,7 +14,6 @@ import { useUsers } from '@/lib/api/hooks/use-users';
 
 export default function SalaryViewPage() {
   const params = useParams();
-  const router = useRouter();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const salaryId = params.id as string;

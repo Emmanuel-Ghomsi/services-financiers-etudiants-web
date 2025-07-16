@@ -19,11 +19,12 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils/currency';
 import { PAYMENT_MODE_LABELS } from '@/lib/constants/salary-constants';
 import { useSalaryPdfDownload, useSalaryMutations } from '@/lib/api/hooks/use-salaries';
-import type { SalaryDTO } from '@/types/salary';
+import { ValidationStatus, type SalaryDTO } from '@/types/salary';
 import { useRouter } from 'next/navigation';
 import { useUsers } from '@/lib/api/hooks/use-users';
 import { ValidationStatusBadge } from '@/components/common/validation-status-badge';
 import { ValidationActions } from '@/components/common/validation-actions';
+import { useProfile } from '@/lib/api/hooks/use-profile';
 
 interface SalariesTableProps {
   salaries: SalaryDTO[];
@@ -37,6 +38,7 @@ export function SalariesTable({ salaries, onEdit, onDelete, isLoading }: Salarie
   const { downloadPdf, isDownloading } = useSalaryPdfDownload();
   const { data: usersData } = useUsers({ page: 1, pageSize: 100 });
   const { validateAsAdmin, validateAsSuperAdmin, rejectSalary } = useSalaryMutations();
+  const { profile } = useProfile();
 
   const handleView = (id: string) => {
     router.push(`/salaries/${id}/view`);
@@ -144,17 +146,23 @@ export function SalariesTable({ salaries, onEdit, onDelete, isLoading }: Salarie
                             <Eye className="mr-2 h-4 w-4" />
                             Voir les détails
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => onEdit(salary)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => onDelete(salary.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
-                          </DropdownMenuItem>
+                          {salary.creatorId === profile?.id &&
+                            (salary.status === ValidationStatus.AWAITING_ADMIN_VALIDATION ||
+                              salary.status === ValidationStatus.REJECTED) && (
+                              <DropdownMenuItem onClick={() => onEdit(salary)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Modifier
+                              </DropdownMenuItem>
+                            )}
+                          {salary.creatorId === profile?.id && (
+                            <DropdownMenuItem
+                              onClick={() => onDelete(salary.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -191,7 +199,7 @@ export function SalariesTable({ salaries, onEdit, onDelete, isLoading }: Salarie
               </div>
               <ValidationActions
                 itemId={salary.id}
-                currentStatus={salary.status}
+                status={salary.status}
                 onValidateAsAdmin={handleValidateAsAdmin}
                 onValidateAsSuperAdmin={handleValidateAsSuperAdmin}
                 onReject={handleReject}

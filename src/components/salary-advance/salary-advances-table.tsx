@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { formatCurrency } from '@/lib/utils/currency';
 import { useProfile } from '@/lib/api/hooks/use-profile';
-import type { SalaryAdvanceDTO } from '@/types/salary-advance';
+import { ValidationStatus, type SalaryAdvanceDTO } from '@/types/salary-advance';
 import { useUsers } from '@/lib/api/hooks/use-users';
 import { ValidationStatusBadge } from '@/components/common/validation-status-badge';
 import { ValidationActions } from '@/components/common/validation-actions';
@@ -38,12 +38,13 @@ export function SalaryAdvancesTable({
   isLoading,
 }: SalaryAdvancesTableProps) {
   const { profile } = useProfile();
-  const { data: usersData } = useUsers({ page: 1, pageSize: 100 });
-  const { validateAsAdmin, validateAsSuperAdmin, rejectAdvance } = useSalaryAdvanceMutations();
 
   const canModify = profile?.roles?.some((role) =>
     ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
   );
+
+  const { data: usersData } = useUsers({ page: 1, pageSize: 100 }, { enabled: canModify });
+  const { validateAsAdmin, validateAsSuperAdmin, rejectAdvance } = useSalaryAdvanceMutations();
 
   const handleValidateAsAdmin = (id: string, validatorId: string) => {
     validateAsAdmin.mutate({ id, validatorId });
@@ -86,14 +87,19 @@ export function SalaryAdvancesTable({
           </TableHeader>
           <TableBody>
             {advances.map((advance) => {
-              const employee = usersData?.items?.find(
-                (user: any) => user.id === advance.employeeId
-              );
-              const employeeName = employee
-                ? employee.firstName && employee.lastName
-                  ? `${employee.firstName} ${employee.lastName}`
-                  : employee.username
-                : `Employé ${advance.employeeId.slice(0, 8)}...`;
+              const employee = canModify
+                ? usersData?.items?.find((user: any) => user.id === advance.employeeId)
+                : null;
+
+              const employeeName =
+                canModify && employee
+                  ? employee.firstName && employee.lastName
+                    ? `${employee.firstName} ${employee.lastName}`
+                    : employee.username
+                  : advance.employeeId === profile?.id
+                  ? `${profile?.firstname || ''} ${profile?.lastname || ''}`.trim() ||
+                    profile?.username
+                  : `Employé ${advance.employeeId.slice(0, 8)}...`;
 
               return (
                 <TableRow key={advance.id}>
@@ -125,13 +131,16 @@ export function SalaryAdvancesTable({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {onEdit && (
-                            <DropdownMenuItem onClick={() => onEdit(advance)}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Modifier
-                            </DropdownMenuItem>
-                          )}
-                          {onDelete && (
+                          {advance.creatorId === profile?.id &&
+                            (advance.status === ValidationStatus.AWAITING_ADMIN_VALIDATION ||
+                              advance.status === ValidationStatus.REJECTED) &&
+                            onEdit && (
+                              <DropdownMenuItem onClick={() => onEdit(advance)}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Modifier
+                              </DropdownMenuItem>
+                            )}
+                          {advance.creatorId === profile?.id && onDelete && (
                             <DropdownMenuItem
                               onClick={() => onDelete(advance.id)}
                               className="text-red-600"
@@ -154,12 +163,18 @@ export function SalaryAdvancesTable({
       {/* Actions de validation pour chaque avance */}
       <div className="space-y-4">
         {advances.map((advance) => {
-          const employee = usersData?.items?.find((user: any) => user.id === advance.employeeId);
-          const employeeName = employee
-            ? employee.firstName && employee.lastName
-              ? `${employee.firstName} ${employee.lastName}`
-              : employee.username
-            : `Employé ${advance.employeeId.slice(0, 8)}...`;
+          const employee = canModify
+            ? usersData?.items?.find((user: any) => user.id === advance.employeeId)
+            : null;
+
+          const employeeName =
+            canModify && employee
+              ? employee.firstName && employee.lastName
+                ? `${employee.firstName} ${employee.lastName}`
+                : employee.username
+              : advance.employeeId === profile?.id
+              ? `${profile?.firstname || ''} ${profile?.lastname || ''}`.trim() || profile?.username
+              : `Employé ${advance.employeeId.slice(0, 8)}...`;
 
           return (
             <div
@@ -174,7 +189,7 @@ export function SalaryAdvancesTable({
               </div>
               <ValidationActions
                 itemId={advance.id}
-                currentStatus={advance.status}
+                status={advance.status}
                 onValidateAsAdmin={handleValidateAsAdmin}
                 onValidateAsSuperAdmin={handleValidateAsSuperAdmin}
                 onReject={handleReject}

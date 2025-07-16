@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { ExpenseDTO } from '@/types/expense';
+import { ValidationStatus, type ExpenseDTO } from '@/types/expense';
 import {
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_CATEGORY_GROUP_LABELS,
@@ -29,6 +29,7 @@ import { useExpenseDownload } from '@/lib/api/hooks/use-expense-download';
 import { ValidationStatusBadge } from '@/components/common/validation-status-badge';
 import { ValidationActions } from '@/components/common/validation-actions';
 import { useExpenseMutations } from '@/lib/api/hooks/use-expenses';
+import { useProfile } from '@/lib/api/hooks/use-profile';
 
 interface ExpensesTableProps {
   expenses: ExpenseDTO[];
@@ -41,6 +42,7 @@ export function ExpensesTable({ expenses, onEdit, onDelete, isLoading }: Expense
   const router = useRouter();
   const { downloadJustificatif, isDownloading } = useExpenseDownload();
   const { validateAsAdmin, validateAsSuperAdmin, rejectExpense } = useExpenseMutations();
+  const { profile } = useProfile();
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), 'dd/MM/yyyy', { locale: fr });
@@ -167,23 +169,29 @@ export function ExpensesTable({ expenses, onEdit, onDelete, isLoading }: Expense
                         <Eye className="mr-2 h-4 w-4" />
                         Voir
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit(expense)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Modifier
-                      </DropdownMenuItem>
+                      {expense.creatorId === profile?.id &&
+                        (expense.status === ValidationStatus.AWAITING_ADMIN_VALIDATION ||
+                          expense.status === ValidationStatus.REJECTED) && (
+                          <DropdownMenuItem onClick={() => onEdit(expense)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Modifier
+                          </DropdownMenuItem>
+                        )}
                       {expense.fileUrl && (
                         <DropdownMenuItem onClick={() => handleDownloadFile(expense)}>
                           <Download className="mr-2 h-4 w-4" />
                           Télécharger le fichier
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem
-                        onClick={() => onDelete(expense.id)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Supprimer
-                      </DropdownMenuItem>
+                      {expense.creatorId === profile?.id && (
+                        <DropdownMenuItem
+                          onClick={() => onDelete(expense.id)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Supprimer
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -207,7 +215,7 @@ export function ExpensesTable({ expenses, onEdit, onDelete, isLoading }: Expense
             </div>
             <ValidationActions
               itemId={expense.id}
-              currentStatus={expense.status}
+              status={expense.status}
               onValidateAsAdmin={handleValidateAsAdmin}
               onValidateAsSuperAdmin={handleValidateAsSuperAdmin}
               onReject={handleReject}

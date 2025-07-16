@@ -13,8 +13,9 @@ import {
   Home,
   X,
   Receipt,
-  CreditCard,
   Banknote,
+  CreditCard,
+  Calendar,
 } from 'lucide-react';
 import { useProfile } from '@/lib/api/hooks/use-profile';
 import { signOut } from 'next-auth/react';
@@ -52,6 +53,9 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
   // Vérifier si l'utilisateur peut accéder aux avances (tous les utilisateurs peuvent demander, mais seuls ADMIN, RH peuvent valider)
   const canAccessAdvances = !!profile?.roles?.length;
+
+  // Vérifier si l'utilisateur peut accéder aux congés (tous les utilisateurs peuvent demander)
+  const canAccessLeaves = !!profile?.roles?.length;
 
   // Fonction pour basculer l'état d'un menu
   const toggleMenu = (menuId: string) => {
@@ -323,6 +327,23 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
             >
               <CreditCard className="h-5 w-5 flex-shrink-0" />
               {(!collapsed || isMobile) && <span>Avances sur salaire</span>}
+            </Link>
+          )}
+
+          {/* Congés - visible pour tous les utilisateurs */}
+          {canAccessLeaves && (
+            <Link
+              href="/leaves"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/leaves')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+              onClick={isMobile ? closeMobileSidebar : undefined}
+            >
+              <Calendar className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span>Congés</span>}
             </Link>
           )}
         </nav>

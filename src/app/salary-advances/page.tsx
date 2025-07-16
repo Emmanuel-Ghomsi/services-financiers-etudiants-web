@@ -44,19 +44,25 @@ export default function SalaryAdvancesPage() {
   const { profile } = useProfile();
   const { toast } = useToast();
 
-  // Hooks pour les données
-  const { data: allAdvances, isLoading: allAdvancesLoading } = useAllSalaryAdvances();
-  const { data: myAdvances, isLoading: myAdvancesLoading } = useSalaryAdvanceHistory(
-    profile?.id || ''
-  );
-
-  const { requestAdvance, updateStatus, updateAdvance, deleteAdvance } =
-    useSalaryAdvanceMutations();
-
   // Vérifier si l'utilisateur peut voir toutes les avances
   const canViewAll = profile?.roles?.some((role) =>
     ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
   );
+
+  // Hooks pour les données - conditionnels selon les permissions
+  const { data: allAdvances, isLoading: allAdvancesLoading } = useAllSalaryAdvances({
+    enabled: canViewAll,
+  });
+
+  const { data: myAdvances, isLoading: myAdvancesLoading } = useSalaryAdvanceHistory(
+    profile?.id || '',
+    {
+      enabled: !!profile?.id,
+    }
+  );
+
+  const { requestAdvance, updateStatus, updateAdvance, deleteAdvance } =
+    useSalaryAdvanceMutations();
 
   const handleCreateAdvance = (data: CreateSalaryAdvanceRequest) => {
     requestAdvance.mutate(data, {

@@ -3,15 +3,23 @@
 import { TrendingUp, Clock, DollarSign, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils/currency';
-import { useDashboardSummary, useSalaryEvolution } from '@/lib/api/hooks/use-dashboard-summary';
+import {
+  useDashboardSummary,
+  useExpenseDistribution,
+  useSalaryEvolution,
+} from '@/lib/api/hooks/use-dashboard-summary';
 
 export function SalaryWidgets() {
   const { data: summary, isLoading: summaryLoading } = useDashboardSummary();
   const { data: evolution, isLoading: evolutionLoading } = useSalaryEvolution(
     new Date().getFullYear().toString()
   );
+  const { data: distribution, isLoading: distributionLoading } = useExpenseDistribution({
+    year: new Date().getFullYear().toString(),
+    month: new Date().getMonth().toString(),
+  });
 
-  if (summaryLoading || evolutionLoading) {
+  if (summaryLoading || evolutionLoading || distributionLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
@@ -71,16 +79,20 @@ export function SalaryWidgets() {
       </Card>
 
       {/* Dépenses du mois */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Dépenses du mois</CardTitle>
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(summary?.monthlyExpenses || 0)}</div>
-          <p className="text-xs text-muted-foreground">Toutes catégories confondues</p>
-        </CardContent>
-      </Card>
+      {distribution
+        ? distribution.map((expense) => (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Dépenses du mois</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{formatCurrency(expense.amount || 0)}</div>
+                <p className="text-xs text-muted-foreground">{expense.category}</p>
+              </CardContent>
+            </Card>
+          ))
+        : null}
 
       {/* Congés actifs */}
       <Card>

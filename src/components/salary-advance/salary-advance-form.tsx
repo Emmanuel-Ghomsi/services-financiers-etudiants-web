@@ -33,9 +33,9 @@ const salaryAdvanceFormSchema = z.object({
 type SalaryAdvanceFormData = z.infer<typeof salaryAdvanceFormSchema>;
 
 interface SalaryAdvanceFormProps {
-  advance?: SalaryAdvanceDTO | null; // Accepter null
+  advance?: SalaryAdvanceDTO | null;
   onSubmit?: (data: CreateSalaryAdvanceRequest) => void;
-  onUpdate?: (data: UpdateSalaryAdvanceRequest) => void; // Handler séparé pour la modification
+  onUpdate?: (data: UpdateSalaryAdvanceRequest) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -48,7 +48,13 @@ export function SalaryAdvanceForm({
   isLoading,
 }: SalaryAdvanceFormProps) {
   const { profile } = useProfile();
-  const { data: usersData } = useUsers({ page: 1, pageSize: 100 });
+
+  // Vérifier si l'utilisateur peut sélectionner un employé (RH/Admin) - calculé avant les hooks
+  const canSelectEmployee = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
+  );
+
+  const { data: usersData } = useUsers({ page: 1, pageSize: 100 }, { enabled: canSelectEmployee });
 
   const isEditing = !!advance;
 
@@ -119,19 +125,16 @@ export function SalaryAdvanceForm({
     setValue('employeeId', employeeId);
   };
 
-  // Vérifier si l'utilisateur peut sélectionner un employé (RH/Admin)
-  const canSelectEmployee = profile?.roles?.some((role) =>
-    ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
-  );
-
   // Trouver le nom de l'employé sélectionné
-  const selectedEmployee = usersData?.items?.find(
-    (user: any) => user.id === watchedValues.employeeId
-  );
-  const employeeName = selectedEmployee
-    ? `${selectedEmployee.firstName || ''} ${selectedEmployee.lastName || ''}`.trim() ||
-      selectedEmployee.username
-    : `${profile?.firstname || ''} ${profile?.lastname || ''}`.trim() || profile?.username;
+  const selectedEmployee = canSelectEmployee
+    ? usersData?.items?.find((user: any) => user.id === watchedValues.employeeId)
+    : null;
+
+  const employeeName =
+    canSelectEmployee && selectedEmployee
+      ? `${selectedEmployee.firstName || ''} ${selectedEmployee.lastName || ''}`.trim() ||
+        selectedEmployee.username
+      : `${profile?.firstname || ''} ${profile?.lastname || ''}`.trim() || profile?.username;
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">

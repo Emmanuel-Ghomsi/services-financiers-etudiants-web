@@ -17,7 +17,7 @@ import { useProfile } from '@/lib/api/hooks/use-profile';
 
 interface ValidationActionsProps {
   itemId: string;
-  currentStatus: ValidationStatus;
+  status: ValidationStatus;
   onValidateAsAdmin: (id: string, validatorId: string) => void;
   onValidateAsSuperAdmin: (id: string, validatorId: string) => void;
   onReject: (id: string, reason: string) => void;
@@ -26,7 +26,7 @@ interface ValidationActionsProps {
 
 export function ValidationActions({
   itemId,
-  currentStatus,
+  status,
   onValidateAsAdmin,
   onValidateAsSuperAdmin,
   onReject,
@@ -40,14 +40,12 @@ export function ValidationActions({
   const isSuperAdmin = profile?.roles?.some((role) => role.toUpperCase() === 'SUPER_ADMIN');
 
   const canValidateAsAdmin =
-    isAdmin &&
-    (currentStatus === ValidationStatus.AWAITING_ADMIN_VALIDATION || currentStatus === null);
+    isAdmin && (status === ValidationStatus.AWAITING_ADMIN_VALIDATION || status === null);
   const canValidateAsSuperAdmin =
-    isSuperAdmin && currentStatus === ValidationStatus.AWAITING_SUPERADMIN_VALIDATION;
+    isSuperAdmin && status === ValidationStatus.AWAITING_SUPERADMIN_VALIDATION;
   const canReject =
-    (isAdmin || isSuperAdmin) &&
-    currentStatus !== ValidationStatus.VALIDATED &&
-    currentStatus !== ValidationStatus.REJECTED;
+    (isAdmin && status == ValidationStatus.AWAITING_ADMIN_VALIDATION) ||
+    (isSuperAdmin && status == ValidationStatus.AWAITING_SUPERADMIN_VALIDATION);
 
   const handleValidateAsAdmin = () => {
     if (profile?.id) {
@@ -84,7 +82,7 @@ export function ValidationActions({
             className="bg-green-600 hover:bg-green-700"
           >
             <Check className="h-4 w-4 mr-1" />
-            Valider (Admin)
+            Valider (Conformité)
           </Button>
         )}
 
@@ -96,7 +94,7 @@ export function ValidationActions({
             className="bg-blue-600 hover:bg-blue-700"
           >
             <Check className="h-4 w-4 mr-1" />
-            Valider (Super Admin)
+            Valider (Contrôle Interne)
           </Button>
         )}
 
