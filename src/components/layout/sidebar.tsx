@@ -12,6 +12,10 @@ import {
   LogOut,
   Home,
   X,
+  Receipt,
+  Banknote,
+  CreditCard,
+  Calendar,
 } from 'lucide-react';
 import { useProfile } from '@/lib/api/hooks/use-profile';
 import { signOut } from 'next-auth/react';
@@ -36,6 +40,22 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
   const isAdmin = profile?.roles?.some(
     (role) => role.toUpperCase() === 'ADMIN' || role.toUpperCase() === 'SUPER_ADMIN'
   );
+
+  // Vérifier si l'utilisateur peut accéder aux dépenses (ADMIN, SUPER_ADMIN, RH)
+  const canAccessExpenses = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
+  );
+
+  // Vérifier si l'utilisateur peut accéder aux salaires (ADMIN, SUPER_ADMIN, RH, ACCOUNTANT)
+  const canAccessSalaries = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH', 'ACCOUNTANT'].includes(role.toUpperCase())
+  );
+
+  // Vérifier si l'utilisateur peut accéder aux avances (tous les utilisateurs peuvent demander, mais seuls ADMIN, RH peuvent valider)
+  const canAccessAdvances = !!profile?.roles?.length;
+
+  // Vérifier si l'utilisateur peut accéder aux congés (tous les utilisateurs peuvent demander)
+  const canAccessLeaves = !!profile?.roles?.length;
 
   // Fonction pour basculer l'état d'un menu
   const toggleMenu = (menuId: string) => {
@@ -258,6 +278,74 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
               </div>
             )}
           </div>
+
+          {/* Dépenses - visible pour ADMIN, SUPER_ADMIN, RH */}
+          {canAccessExpenses && (
+            <Link
+              href="/expenses"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/expenses')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+              onClick={isMobile ? closeMobileSidebar : undefined}
+            >
+              <Receipt className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span>Dépenses</span>}
+            </Link>
+          )}
+
+          {/* Salaires - visible pour ADMIN, SUPER_ADMIN, RH, ACCOUNTANT */}
+          {canAccessSalaries && (
+            <Link
+              href="/salaries"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/salaries')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+              onClick={isMobile ? closeMobileSidebar : undefined}
+            >
+              <Banknote className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span>Salaires</span>}
+            </Link>
+          )}
+
+          {/* Avances sur salaire - visible pour tous les utilisateurs */}
+          {canAccessAdvances && (
+            <Link
+              href="/salary-advances"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/salary-advances')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+              onClick={isMobile ? closeMobileSidebar : undefined}
+            >
+              <CreditCard className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span>Avances sur salaire</span>}
+            </Link>
+          )}
+
+          {/* Congés - visible pour tous les utilisateurs */}
+          {canAccessLeaves && (
+            <Link
+              href="/leaves"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                isActive('/leaves')
+                  ? 'bg-white text-brand-blue font-medium'
+                  : 'text-white hover:bg-brand-blue-light'
+              )}
+              onClick={isMobile ? closeMobileSidebar : undefined}
+            >
+              <Calendar className="h-5 w-5 flex-shrink-0" />
+              {(!collapsed || isMobile) && <span>Congés</span>}
+            </Link>
+          )}
         </nav>
       </div>
 

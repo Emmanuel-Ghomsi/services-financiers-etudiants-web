@@ -9,6 +9,8 @@ import { useDashboardStats } from '@/lib/api/hooks/use-multi-role-dashboard-stat
 import { SuperAdminStats } from '@/components/dashboard/super-admin-stats';
 import { AdminStats } from '@/components/dashboard/admin-stats';
 import { AdvisorStats } from '@/components/dashboard/advisor-stats';
+import { SalaryWidgets } from '@/components/dashboard/salary-widgets';
+import { DashboardSummaryCards } from '@/components/dashboard/dashboard-summary-cards';
 import { Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -25,6 +27,16 @@ export default function DashboardPage() {
   } = useDashboardStats();
 
   const router = useRouter();
+
+  // Vérifier si l'utilisateur peut accéder aux widgets salaires
+  const canAccessSalaryWidgets = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH', 'ACCOUNTANT'].includes(role.toUpperCase())
+  );
+
+  // Vérifier si l'utilisateur peut accéder au résumé du dashboard
+  const canAccessDashboardSummary = profile?.roles?.some((role) =>
+    ['ADMIN', 'SUPER_ADMIN', 'RH', 'ACCOUNTANT'].includes(role.toUpperCase())
+  );
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
   useEffect(() => {
@@ -66,6 +78,22 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold">Bienvenue, {profile?.firstname || profile?.username}</h1>
 
         <div className="space-y-10">
+          {/* Résumé du tableau de bord central */}
+          {canAccessDashboardSummary && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Synthèse générale</h2>
+              <DashboardSummaryCards />
+            </div>
+          )}
+
+          {/* Widgets salaires pour les rôles autorisés */}
+          {canAccessSalaryWidgets && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Résumé financier</h2>
+              <SalaryWidgets />
+            </div>
+          )}
+
           {/* Afficher les statistiques en fonction du rôle retourné par l'API */}
           {rawData.role === 'SUPER_ADMIN' && isSuperAdmin && (
             <SuperAdminStats stats={rawData.stats as any} />

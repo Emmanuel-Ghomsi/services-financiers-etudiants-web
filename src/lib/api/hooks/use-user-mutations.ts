@@ -57,7 +57,7 @@ export function useUpdateUserRole() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: AddRoleRequest }) => {
+    mutationFn: async ({ userId, roles }: { userId: string; roles: AddRoleRequest }) => {
       if (!session?.accessToken) {
         throw new Error('Non authentifié');
       }
@@ -68,7 +68,7 @@ export function useUpdateUserRole() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.accessToken}`,
         },
-        body: JSON.stringify(role),
+        body: JSON.stringify(roles),
       });
 
       if (!response.ok) {

@@ -32,6 +32,7 @@ const RoleEnum = {
   ADMIN: 'ADMIN',
   SUB_ADMIN: 'SUB_ADMIN',
   ADVISOR: 'ADVISOR',
+  RH: 'RH',
 } as const;
 
 type RoleType = keyof typeof RoleEnum;
@@ -58,6 +59,7 @@ export function EditRolesModal({ user, isOpen, onClose, onSuccess }: EditRolesMo
     { value: RoleEnum.ADMIN, label: 'Conformité' },
     { value: RoleEnum.SUB_ADMIN, label: 'Admin Délégué' },
     { value: RoleEnum.ADVISOR, label: 'Conseiller' },
+    { value: RoleEnum.RH, label: 'Ressource Humaine' },
   ];
 
   const form = useForm<FormValues>({
@@ -69,31 +71,28 @@ export function EditRolesModal({ user, isOpen, onClose, onSuccess }: EditRolesMo
 
   const onSubmit = async (values: FormValues) => {
     // Déterminer les rôles à ajouter et à supprimer
-    const rolesToAdd = values.roles.filter((role) => !user.roles.includes(role));
-    const rolesToRemove = user.roles.filter((role) => !values.roles.includes(role));
+    const rolesToAdd = values.roles;
+    console.log(rolesToAdd);
 
     // Traiter chaque rôle séquentiellement
     let success = true;
 
     // Ajouter les nouveaux rôles
-    for (const role of rolesToAdd) {
-      try {
-        await new Promise<void>((resolve, reject) => {
-          updateRole(
-            {
-              userId: user.id,
-              role: { role },
-            },
-            {
-              onSuccess: () => resolve(),
-              onError: (error) => reject(error),
-            }
-          );
-        });
-      } catch (error) {
-        success = false;
-        break;
-      }
+    try {
+      await new Promise<void>((resolve, reject) => {
+        updateRole(
+          {
+            userId: user.id,
+            roles: { roles: values.roles },
+          },
+          {
+            onSuccess: () => resolve(),
+            onError: (error) => reject(error),
+          }
+        );
+      });
+    } catch (error) {
+      success = false;
     }
 
     // Si tout s'est bien passé

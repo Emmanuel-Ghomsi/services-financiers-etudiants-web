@@ -14,11 +14,11 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_PATH_URL;
 
-export function useUsers(params: UserListRequest) {
+export function useUsers(params: UserListRequest, options?: { enabled?: boolean }) {
   const { data: session } = useSession();
   const { toast } = useToast();
   const { setUsers, setLoading, setError, addUser } = useUserStore();
-  const queryClient = useQueryClient(); // Ajout du queryClient
+  const queryClient = useQueryClient();
 
   const query = useQuery<UserPaginationDTO>({
     queryKey: ['users', params],
@@ -52,7 +52,7 @@ export function useUsers(params: UserListRequest) {
 
       return response.json();
     },
-    enabled: !!session?.accessToken,
+    enabled: (options?.enabled ?? true) && !!session?.accessToken,
   });
 
   // Mettre à jour le store lorsque les données sont disponibles
