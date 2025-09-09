@@ -117,10 +117,11 @@ export function useSalaryMutations() {
   });
 
   const deleteSalary = useMutation({
-    mutationFn: (id: string) =>
-      apiRequest(`/salaries/${id}`, {
+    mutationFn: async (id: string): Promise<void> => {
+      return apiRequest<void>(`/salaries/${id}`, {
         method: 'DELETE',
-      }),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['salaries'] });
       toast.success('Fiche de salaire supprimée avec succès');
