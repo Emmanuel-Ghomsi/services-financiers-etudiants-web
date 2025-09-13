@@ -43,6 +43,8 @@ export function SalaryAdvancesTable({
     ['ADMIN', 'SUPER_ADMIN', 'RH'].includes(role.toUpperCase())
   );
 
+  const canDelete = profile?.roles?.some((role) => ['SUPER_ADMIN'].includes(role.toUpperCase()));
+
   const { data: usersData } = useUsers({ page: 1, pageSize: 100 }, { enabled: canModify });
   const { validateAsAdmin, validateAsSuperAdmin, rejectAdvance } = useSalaryAdvanceMutations();
 
@@ -140,7 +142,7 @@ export function SalaryAdvancesTable({
                                 Modifier
                               </DropdownMenuItem>
                             )}
-                          {advance.creatorId === profile?.id && onDelete && (
+                          {(advance.creatorId === profile?.id || canDelete) && onDelete && (
                             <DropdownMenuItem
                               onClick={() => onDelete(advance.id)}
                               className="text-red-600"

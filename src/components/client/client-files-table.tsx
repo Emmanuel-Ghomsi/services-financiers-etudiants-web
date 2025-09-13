@@ -25,6 +25,8 @@ import { ClientFileActionsMenu } from './client-file-actions-menu';
 import { useClientFilePermissions } from '@/hooks/use-client-file-permissions';
 import { useToast } from '@/hooks/use-toast';
 import { ClientFileStatus } from '@/lib/constants/client-file-status';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export function ClientFilesTable() {
   const [page, setPage] = useState(1);
@@ -82,6 +84,10 @@ export function ClientFilesTable() {
       });
     }
   }, [queryIsLoading, queryError, toast]);
+
+  const formatDate = (dateString: string) => {
+    return format(new Date(dateString), 'dd MMMM yyyy', { locale: fr });
+  };
 
   // Vérifier si une fiche est en attente de validation
   const isAwaitingValidation = (status: string) => {
@@ -152,6 +158,7 @@ export function ClientFilesTable() {
                     <TableHead>Progression</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Opérateur</TableHead>
+                    <TableHead>Date de création</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -195,6 +202,7 @@ export function ClientFilesTable() {
                           />
                         </TableCell>
                         <TableCell>{client.creatorUsername}</TableCell>
+                        <TableCell>{formatDate(client.createdAt)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end items-center gap-2">
                             {permissions.canEditFile(client) ? (
